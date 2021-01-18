@@ -13,6 +13,8 @@ import numpy as np
 import cv2
 from PIL import Image
 
+__all__ = ["max_RGB", "max_rgb_filter", "change_color"]
+
 def max_RGB (in_rgb_image):
     a_rgb_image = in_rgb_image.copy()
     result = np.zeros(a_rgb_image.shape)
@@ -58,25 +60,26 @@ def change_color(in_path_im, out_path_im):
     im = Image.fromarray(data)
     im.save(out_path_im)
 
-# take directory where are images
-dir_in = askdirectory(title="in")
-
-# take directory where save images
-dir_out = askdirectory(title="out")
-
-# take all images in directory
-my_files = file_list(dir_in)
-
-# delete background of each images
-for my_file in my_files:
-    try:
-        # read image
-        #my_image = io.imread(join(dir_in, my_file))
-        change_color(join(dir_in, my_file), join(dir_out, my_file))
-        image = cv2.imread(join(dir_out, my_file))
-    except IOError:
-        print("plouf")
-        continue
+if __name__ == "__main__":
+    # take directory where are images
+    dir_in = askdirectory(title="in")
     
-    image = max_rgb_filter(image)
-    cv2.imwrite(join(dir_out, my_file), image)
+    # take directory where save images
+    dir_out = askdirectory(title="out")
+    
+    # take all images in directory
+    my_files = file_list(dir_in)
+    
+    # delete background of each images
+    for my_file in my_files:
+        try:
+            # read image
+            #my_image = io.imread(join(dir_in, my_file))
+            change_color(join(dir_in, my_file), join(dir_out, my_file))
+            image = cv2.imread(join(dir_out, my_file))
+        except IOError:
+            print("plouf")
+            continue
+        
+        image = max_rgb_filter(image)
+        cv2.imwrite(join(dir_out, my_file), image)
