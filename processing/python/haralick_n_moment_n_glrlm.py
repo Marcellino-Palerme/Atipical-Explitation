@@ -102,22 +102,22 @@ for where in [Alt, Big, Mac, Mil, Myc, Pse, Syl]:
             glrlm = RadiomicsGLRLM(im_itk, mask)
             glrlm._initCalculation()
             # Extract features
-            a_glrlm = [glrlm.getSmallAreaEmphasisFeatureValue()[0],
-                       glrlm.getLargeAreaEmphasisFeatureValue()[0],
+            a_glrlm = [glrlm.getShortRunEmphasisFeatureValue()[0],
+                       glrlm.getLongRunEmphasisFeatureValue()[0],
                        glrlm.getGrayLevelNonUniformityFeatureValue()[0],
                        glrlm.getGrayLevelNonUniformityNormalizedFeatureValue()[0],
-                       glrlm.getSizeZoneNonUniformityFeatureValue()[0],
-                       glrlm.getSizeZoneNonUniformityNormalizedFeatureValue()[0],
-                       glrlm.getZonePercentageFeatureValue()[0],
+                       glrlm.getRunLengthNonUniformityFeatureValue()[0],
+                       glrlm.getRunLengthNonUniformityNormalizedFeatureValue()[0],
+                       glrlm.getRunPercentageFeatureValue()[0],
                        glrlm.getGrayLevelVarianceFeatureValue()[0],
-                       glrlm.getZoneVarianceFeatureValue()[0],
-                       glrlm.getZoneEntropyFeatureValue()[0],
-                       glrlm.getLowGrayLevelZoneEmphasisFeatureValue()[0],
-                       glrlm.getHighGrayLevelZoneEmphasisFeatureValue()[0],
-                       glrlm.getSmallAreaLowGrayLevelEmphasisFeatureValue()[0],
-                       glrlm.getSmallAreaHighGrayLevelEmphasisFeatureValue()[0],
-                       glrlm.getLargeAreaLowGrayLevelEmphasisFeatureValue()[0],
-                       glrlm.getLargeAreaHighGrayLevelEmphasisFeatureValue()[0]
+                       glrlm.getRunVarianceFeatureValue()[0],
+                       glrlm.getRunEntropyFeatureValue()[0],
+                       glrlm.getLowGrayLevelRunEmphasisFeatureValue()[0],
+                       glrlm.getHighGrayLevelRunEmphasisFeatureValue()[0],
+                       glrlm.getShortRunLowGrayLevelEmphasisFeatureValue()[0],
+                       glrlm.getShortRunHighGrayLevelEmphasisFeatureValue()[0],
+                       glrlm.getLongRunLowGrayLevelEmphasisFeatureValue()[0],
+                       glrlm.getLongRunHighGrayLevelEmphasisFeatureValue()[0]
                 ]
 
             rR = rR[np.nonzero(im_gray)]
@@ -189,22 +189,22 @@ for where in [Alt, Big, Mac, Mil, Myc, Pse, Syl]:
             glrlm = RadiomicsGLRLM(im_itk, mask)
             glrlm._initCalculation()
             # Extract features
-            a_glrlm = [glrlm.getSmallAreaEmphasisFeatureValue()[0],
-                       glrlm.getLargeAreaEmphasisFeatureValue()[0],
+            a_glrlm = [glrlm.getShortRunEmphasisFeatureValue()[0],
+                       glrlm.getLongRunEmphasisFeatureValue()[0],
                        glrlm.getGrayLevelNonUniformityFeatureValue()[0],
                        glrlm.getGrayLevelNonUniformityNormalizedFeatureValue()[0],
-                       glrlm.getSizeZoneNonUniformityFeatureValue()[0],
-                       glrlm.getSizeZoneNonUniformityNormalizedFeatureValue()[0],
-                       glrlm.getZonePercentageFeatureValue()[0],
+                       glrlm.getRunLengthNonUniformityFeatureValue()[0],
+                       glrlm.getRunLengthNonUniformityNormalizedFeatureValue()[0],
+                       glrlm.getRunPercentageFeatureValue()[0],
                        glrlm.getGrayLevelVarianceFeatureValue()[0],
-                       glrlm.getZoneVarianceFeatureValue()[0],
-                       glrlm.getZoneEntropyFeatureValue()[0],
-                       glrlm.getLowGrayLevelZoneEmphasisFeatureValue()[0],
-                       glrlm.getHighGrayLevelZoneEmphasisFeatureValue()[0],
-                       glrlm.getSmallAreaLowGrayLevelEmphasisFeatureValue()[0],
-                       glrlm.getSmallAreaHighGrayLevelEmphasisFeatureValue()[0],
-                       glrlm.getLargeAreaLowGrayLevelEmphasisFeatureValue()[0],
-                       glrlm.getLargeAreaHighGrayLevelEmphasisFeatureValue()[0]
+                       glrlm.getRunVarianceFeatureValue()[0],
+                       glrlm.getRunEntropyFeatureValue()[0],
+                       glrlm.getLowGrayLevelRunEmphasisFeatureValue()[0],
+                       glrlm.getHighGrayLevelRunEmphasisFeatureValue()[0],
+                       glrlm.getShortRunLowGrayLevelEmphasisFeatureValue()[0],
+                       glrlm.getShortRunHighGrayLevelEmphasisFeatureValue()[0],
+                       glrlm.getLongRunLowGrayLevelEmphasisFeatureValue()[0],
+                       glrlm.getLongRunHighGrayLevelEmphasisFeatureValue()[0]
                 ]
 
             rR = rR[np.nonzero(im_gray)]
