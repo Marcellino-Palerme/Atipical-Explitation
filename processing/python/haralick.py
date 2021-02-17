@@ -9,13 +9,14 @@ import mahotas as mh
 import glob, os
 import numpy as np
 import matplotlib.pyplot as plt
-from sklearn.ensemble import GradientBoostingClassifier
+
 
 from sklearn.model_selection import KFold
 
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
-from sklearn.metrics import confusion_matrix
+from sklearn.metrics import confusion_matrix, cohen_kappa_score
+from skimage import io
 
 ## unit test is ok ###
 
@@ -68,9 +69,26 @@ for where in [Alt, Big, Mac, Mil, Myc, Pse, Syl]:
         # res1=mh.features.haralick(imgGiR,ignore_zeros=True,return_mean=True)
         # res2=mh.features.zernike_moments(imgGiR,radius=1000)
         # res=np.concatenate((res1,res2))
-        res1=mh.features.haralick(rR,ignore_zeros=False,return_mean=True)
-        res2=mh.features.haralick(gR,ignore_zeros=False,return_mean=True)
-        res3=mh.features.haralick(bR,ignore_zeros=False,return_mean=True)
+        res1 = np.zeros((13,))
+        res2 = np.zeros((13,))
+        res3 = np.zeros((13,))
+        im_gray = io.imread(file, True, 'matplotlib')
+        if len(np.nonzero(im_gray)[0]) > 0:
+            try:
+                res1=mh.features.haralick(rR,ignore_zeros=True,return_mean=True)
+            except ValueError:
+                pass
+            try:
+                res2=mh.features.haralick(gR,ignore_zeros=True,return_mean=True)
+            except ValueError:
+                pass
+            try:
+                res3=mh.features.haralick(bR,ignore_zeros=True,return_mean=True)
+            except ValueError:
+                pass
+        # res1=mh.features.haralick(rR,ignore_zeros=False,return_mean=True)
+        # res2=mh.features.haralick(gR,ignore_zeros=False,return_mean=True)
+        # res3=mh.features.haralick(bR,ignore_zeros=False,return_mean=True)
         res=np.concatenate((res1,res2,res3))
         ones.append(res)
         k=k+1.0
@@ -98,10 +116,27 @@ for where in [Alt, Big, Mac, Mil, Myc, Pse, Syl]:
         bR=image[:,:,2] # b 
         #rR=np.where(r==255, 0, r)
         #gR=np.where(g==255, 0, g)
-        #bR=np.where(b==255, 0, b)        
-        res1=mh.features.haralick(rR,ignore_zeros=False,return_mean=True)
-        res2=mh.features.haralick(gR,ignore_zeros=False,return_mean=True)
-        res3=mh.features.haralick(bR,ignore_zeros=False,return_mean=True)
+        #bR=np.where(b==255, 0, b)  
+        res1 = np.zeros((13,))
+        res2 = np.zeros((13,))
+        res3 = np.zeros((13,))
+        im_gray = io.imread(file, True, 'matplotlib')
+        if len(np.nonzero(im_gray)[0]) > 0:
+            try:
+                res1=mh.features.haralick(rR,ignore_zeros=True,return_mean=True)
+            except ValueError:
+                pass
+            try:
+                res2=mh.features.haralick(gR,ignore_zeros=True,return_mean=True)
+            except ValueError:
+                pass
+            try:
+                res3=mh.features.haralick(bR,ignore_zeros=True,return_mean=True)
+            except ValueError:
+                pass
+        # res1=mh.features.haralick(rR,ignore_zeros=False,return_mean=True)
+        # res2=mh.features.haralick(gR,ignore_zeros=False,return_mean=True)
+        # res3=mh.features.haralick(bR,ignore_zeros=False,return_mean=True)
         res=np.concatenate((res1,res2,res3))
         ones.append(res)
         k=k+1.0
@@ -157,7 +192,7 @@ for train, test in kf.split(Xb):
     print("Train : ", train)
     print('test : ', test) 
     X_train, X_test, y_train, y_test = Xb[train], Xb[test], yb[train], yb[test]    
-    clf1 = GradientBoostingClassifier().fit(X_train, y_train)
+    clf1 = LinearDiscriminantAnalysis(solver='lsqr', shrinkage='auto').fit(X_train, y_train) 
     clf2 = LinearDiscriminantAnalysis(solver='lsqr', shrinkage=None).fit(X_train, y_train)    
     clf3 = QuadraticDiscriminantAnalysis().fit(X_train, y_train)    
     acc1.append(clf1.score(X_test,y_test))
@@ -200,16 +235,19 @@ def cal_visu_conf(preds, trues):
 
 
 
-print("GRADIENT")
-print(np.array(acc1).mean())
+print("LINEAR Auto")
+print("Acc " + np.array(acc1).mean())
+print("Kappa " + cohen_kappa_score(preds1, trues1))
 cal_visu_conf(preds1, trues1)
 
 print("LINEAR")
-print(np.array(acc2).mean())
+print("Acc " + np.array(acc2).mean())
+print("Kappa " + cohen_kappa_score(preds2, trues2))
 cal_visu_conf(preds2, trues2)
 
 print("QUADRATIC")
-print(np.array(acc3).mean())
+print("Acc " + np.array(acc3).mean())
+print("Kappa " + cohen_kappa_score(preds3, trues3))
 cal_visu_conf(preds3, trues3)
 
 
