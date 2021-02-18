@@ -9,14 +9,14 @@ import mahotas as mh
 import glob, os
 import numpy as np
 import matplotlib.pyplot as plt
-from sklearn.ensemble import GradientBoostingClassifier
 
 from sklearn.model_selection import KFold
 
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
-from sklearn.metrics import confusion_matrix
+from sklearn.metrics import confusion_matrix, cohen_kappa_score
 from skimage import io
+
 
 ## unit test is ok ###
 
@@ -28,13 +28,13 @@ from skimage import io
 
 ## 'copy-pasta'
 
-Alt = '/home/port-mpalerme/Documents/Atipical/Traitement/photos/Alt'
-Big = '/home/port-mpalerme/Documents/Atipical/Traitement/photos/Big'
-Mac = '/home/port-mpalerme/Documents/Atipical/Traitement/photos/Mac'
-Mil = '/home/port-mpalerme/Documents/Atipical/Traitement/photos/Mil'
-Myc = '/home/port-mpalerme/Documents/Atipical/Traitement/photos/Myc'
-Pse = '/home/port-mpalerme/Documents/Atipical/Traitement/photos/Pse'
-Syl = '/home/port-mpalerme/Documents/Atipical/Traitement/photos/Syl'
+Alt = '/home/mpalerme/Documents/Atipical_traitement_element_Lydia/photo_jeu_reduit/Alt_bdb_cut2_max'
+Big = '/home/mpalerme/Documents/Atipical_traitement_element_Lydia/photo_jeu_reduit/Big_bdb_cut2_max'
+Mac = '/home/mpalerme/Documents/Atipical_traitement_element_Lydia/photo_jeu_reduit/Mac_bdb_cut2_max'
+Mil = '/home/mpalerme/Documents/Atipical_traitement_element_Lydia/photo_jeu_reduit/Mil_bdb_cut2_max'
+Myc = '/home/mpalerme/Documents/Atipical_traitement_element_Lydia/photo_jeu_reduit/Myc_bdb_cut2_max'
+Pse = '/home/mpalerme/Documents/Atipical_traitement_element_Lydia/photo_jeu_reduit/Pse_bdb_cut2_max'
+Syl = '/home/mpalerme/Documents/Atipical_traitement_element_Lydia/photo_jeu_reduit/Syl_bdb_cut2_max'
 
 y=np.array([])
 X=[]
@@ -69,12 +69,28 @@ for where in [Alt, Big, Mac, Mil, Myc, Pse, Syl]:
         # res1=mh.features.haralick(imgGiR,ignore_zeros=True,return_mean=True)
         # res2=mh.features.zernike_moments(imgGiR,radius=1000)
         # res=np.concatenate((res1,res2))
-        res1=mh.features.haralick(rR,ignore_zeros=False,return_mean=True)
-        res2=mh.features.haralick(gR,ignore_zeros=False,return_mean=True)
-        res3=mh.features.haralick(bR,ignore_zeros=False,return_mean=True)
+        # res1=mh.features.haralick(rR,ignore_zeros=False,return_mean=True)
+        # res2=mh.features.haralick(gR,ignore_zeros=False,return_mean=True)
+        # res3=mh.features.haralick(bR,ignore_zeros=False,return_mean=True)
+        res1 = np.zeros((13,))
+        res2 = np.zeros((13,))
+        res3 = np.zeros((13,))
         # Not use background for moments
         im_gray = io.imread(file, True, 'matplotlib')
         if len(np.nonzero(im_gray)[0]) > 0:
+            try:
+                res1=mh.features.haralick(rR,ignore_zeros=True,return_mean=True)
+            except ValueError:
+                pass
+            try:
+                res2=mh.features.haralick(gR,ignore_zeros=True,return_mean=True)
+            except ValueError:
+                pass
+            try:
+                res3=mh.features.haralick(bR,ignore_zeros=True,return_mean=True)
+            except ValueError:
+                pass
+
             rR = rR[np.nonzero(im_gray)]
             gR = gR[np.nonzero(im_gray)]
             bR = bR[np.nonzero(im_gray)]
@@ -83,6 +99,7 @@ for where in [Alt, Big, Mac, Mil, Myc, Pse, Syl]:
         momt_G = [np.mean(gR), np.std(gR), np.var(gR), np.min(gR), np.max(gR)]
         momt_B = [np.mean(bR), np.std(bR), np.var(bR), np.min(bR), np.max(bR)]
         res=np.concatenate((res1, res2, res3, momt_R, momt_G, momt_B))
+        # res=np.concatenate((momt_R, momt_G, momt_B))
         ones.append(res)
         k=k+1.0
     print("Done "+where)
@@ -110,13 +127,27 @@ for where in [Alt, Big, Mac, Mil, Myc, Pse, Syl]:
         #rR=np.where(r==255, 0, r)
         #gR=np.where(g==255, 0, g)
         #bR=np.where(b==255, 0, b)
-        res1=mh.features.haralick(rR,ignore_zeros=False,return_mean=True)
-        res2=mh.features.haralick(gR,ignore_zeros=False,return_mean=True)
-        res3=mh.features.haralick(bR,ignore_zeros=False,return_mean=True)
-
+        # res1=mh.features.haralick(rR,ignore_zeros=False,return_mean=True)
+        # res2=mh.features.haralick(gR,ignore_zeros=False,return_mean=True)
+        # res3=mh.features.haralick(bR,ignore_zeros=False,return_mean=True)
+        res1 = np.zeros((13,))
+        res2 = np.zeros((13,))
+        res3 = np.zeros((13,))
         # Not use background for moments
         im_gray = io.imread(file, True, 'matplotlib')
         if len(np.nonzero(im_gray)[0]) > 0:
+            try:
+                res1=mh.features.haralick(rR,ignore_zeros=True,return_mean=True)
+            except ValueError:
+                pass
+            try:
+                res2=mh.features.haralick(gR,ignore_zeros=True,return_mean=True)
+            except ValueError:
+                pass
+            try:
+                res3=mh.features.haralick(bR,ignore_zeros=True,return_mean=True)
+            except ValueError:
+                pass
             rR = rR[np.nonzero(im_gray)]
             gR = gR[np.nonzero(im_gray)]
             bR = bR[np.nonzero(im_gray)]
@@ -125,6 +156,7 @@ for where in [Alt, Big, Mac, Mil, Myc, Pse, Syl]:
         momt_G = [np.mean(gR), np.std(gR), np.var(gR), np.min(gR), np.max(gR)]
         momt_B = [np.mean(bR), np.std(bR), np.var(bR), np.min(bR), np.max(bR)]
         res=np.concatenate((res1, res2, res3, momt_R, momt_G, momt_B))
+        # res=np.concatenate((momt_R, momt_G, momt_B))
         ones.append(res)
         k=k+1.0
     print("Done "+where)
@@ -164,6 +196,8 @@ for i in range(Xrb.shape[0]):
 Xb=np.vstack(Xtot) # (X)
 #yb=y[idx]
 yb=y
+
+
 kf = KFold(len(yb))
 
 acc1=[]
@@ -179,14 +213,14 @@ for train, test in kf.split(Xb):
     print("Train : ", train)
     print('test : ', test)
     X_train, X_test, y_train, y_test = Xb[train], Xb[test], yb[train], yb[test]
-    # clf1 = GradientBoostingClassifier().fit(X_train, y_train)
+    clf1 = LinearDiscriminantAnalysis(solver='lsqr', shrinkage='auto').fit(X_train, y_train) 
     clf2 = LinearDiscriminantAnalysis(solver='lsqr', shrinkage=None).fit(X_train, y_train)
     clf3 = QuadraticDiscriminantAnalysis().fit(X_train, y_train)
-    # acc1.append(clf1.score(X_test,y_test))
+    acc1.append(clf1.score(X_test,y_test))
     acc2.append(clf2.score(X_test,y_test))
     acc3.append(clf3.score(X_test,y_test))
-    # preds1.append(clf1.predict(X_test))
-    # trues1.append(y_test)
+    preds1.append(clf1.predict(X_test))
+    trues1.append(y_test)
     preds2.append(clf2.predict(X_test))
     trues2.append(y_test)
     preds3.append(clf3.predict(X_test))
@@ -220,19 +254,17 @@ def cal_visu_conf(preds, trues):
     print(cm_normalized)
 
 
-
-
-# print("GRADIENT")
-# print(np.array(acc1).mean())
-# cal_visu_conf(preds1, trues1)
+print("LINEAR Auto")
+print("Acc = " + str(np.array(acc1).mean()))
+print("Kappa = " + str(cohen_kappa_score(preds1, trues1)))
+cal_visu_conf(preds1, trues1)
 
 print("LINEAR")
-print(np.array(acc2).mean())
+print("Acc = " + str(np.array(acc2).mean()))
+print("Kappa = " + str(cohen_kappa_score(preds2, trues2)))
 cal_visu_conf(preds2, trues2)
 
 print("QUADRATIC")
-print(np.array(acc3).mean())
+print("Acc = " + str(np.array(acc3).mean()))
+print("Kappa = " + str(cohen_kappa_score(preds3, trues3)))
 cal_visu_conf(preds3, trues3)
-
-
-

@@ -9,13 +9,13 @@ import mahotas as mh
 import glob, os
 import numpy as np
 import matplotlib.pyplot as plt
-from sklearn.ensemble import GradientBoostingClassifier
+
 
 from sklearn.model_selection import KFold
 
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
-from sklearn.metrics import confusion_matrix
+from sklearn.metrics import confusion_matrix, cohen_kappa_score
 from skimage import io
 
 
@@ -31,13 +31,14 @@ from radiomics.glrlm import RadiomicsGLRLM
 
 ## 'copy-pasta'
 
-Alt = '/home/port-mpalerme/Documents/Atipical/Traitement/photos/Alt'
-Big = '/home/port-mpalerme/Documents/Atipical/Traitement/photos/Big'
-Mac = '/home/port-mpalerme/Documents/Atipical/Traitement/photos/Mac'
-Mil = '/home/port-mpalerme/Documents/Atipical/Traitement/photos/Mil'
-Myc = '/home/port-mpalerme/Documents/Atipical/Traitement/photos/Myc'
-Pse = '/home/port-mpalerme/Documents/Atipical/Traitement/photos/Pse'
-Syl = '/home/port-mpalerme/Documents/Atipical/Traitement/photos/Syl'
+Alt = '/home/mpalerme/Documents/Atipical_traitement_element_Lydia/photo/Alt_cut2_wo_max'
+Big = '/home/mpalerme/Documents/Atipical_traitement_element_Lydia/photo/Big_cut2_wo_max'
+Mac = '/home/mpalerme/Documents/Atipical_traitement_element_Lydia/photo/Mac_cut2_wo_max'
+Mil = '/home/mpalerme/Documents/Atipical_traitement_element_Lydia/photo/Mil_cut2_wo_max'
+Myc = '/home/mpalerme/Documents/Atipical_traitement_element_Lydia/photo/Myc_cut2_wo_max'
+Pse = '/home/mpalerme/Documents/Atipical_traitement_element_Lydia/photo/Pse_cut2_wo_max'
+Syl = '/home/mpalerme/Documents/Atipical_traitement_element_Lydia/photo/Syl_cut2_wo_max'
+
 
 y=np.array([])
 X=[]
@@ -253,6 +254,7 @@ for i in range(Xrb.shape[0]):
 # from sklearn.datasets import make_classification
 
 Xb=np.vstack(Xtot) # (X)
+Xb = np.nan_to_num(Xb)
 #yb=y[idx]
 yb=y
 
@@ -272,14 +274,14 @@ for train, test in kf.split(Xb):
     print("Train : ", train)
     print('test : ', test)
     X_train, X_test, y_train, y_test = Xb[train], Xb[test], yb[train], yb[test]
-    # clf1 = GradientBoostingClassifier().fit(X_train, y_train)
+    clf1 = LinearDiscriminantAnalysis(solver='lsqr', shrinkage='auto').fit(X_train, y_train) 
     clf2 = LinearDiscriminantAnalysis(solver='lsqr', shrinkage=None).fit(X_train, y_train)
     clf3 = QuadraticDiscriminantAnalysis().fit(X_train, y_train)
-    # acc1.append(clf1.score(X_test,y_test))
+    acc1.append(clf1.score(X_test,y_test))
     acc2.append(clf2.score(X_test,y_test))
     acc3.append(clf3.score(X_test,y_test))
-    # preds1.append(clf1.predict(X_test))
-    # trues1.append(y_test)
+    preds1.append(clf1.predict(X_test))
+    trues1.append(y_test)
     preds2.append(clf2.predict(X_test))
     trues2.append(y_test)
     preds3.append(clf3.predict(X_test))
@@ -315,14 +317,17 @@ def cal_visu_conf(preds, trues):
 
 
 
-# print("GRADIENT")
-# print(np.array(acc1).mean())
-# cal_visu_conf(preds1, trues1)
+print("LINEAR Auto")
+print("Acc = " + str(np.array(acc1).mean()))
+print("Kappa = " + str(cohen_kappa_score(preds1, trues1)))
+cal_visu_conf(preds1, trues1)
 
 print("LINEAR")
-print(np.array(acc2).mean())
+print("Acc = " + str(np.array(acc2).mean()))
+print("Kappa = " + str(cohen_kappa_score(preds2, trues2)))
 cal_visu_conf(preds2, trues2)
 
 print("QUADRATIC")
-print(np.array(acc3).mean())
+print("Acc = " + str(np.array(acc3).mean()))
+print("Kappa = " + str(cohen_kappa_score(preds3, trues3)))
 cal_visu_conf(preds3, trues3)
