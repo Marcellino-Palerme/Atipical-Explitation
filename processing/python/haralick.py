@@ -28,13 +28,13 @@ from skimage import io
 
 ## 'copy-pasta'
 
-Alt = '/home/port-mpalerme/Documents/Atipical/Traitement/photos/Alt' 
-Big = '/home/port-mpalerme/Documents/Atipical/Traitement/photos/Big'
-Mac = '/home/port-mpalerme/Documents/Atipical/Traitement/photos/Mac'
-Mil = '/home/port-mpalerme/Documents/Atipical/Traitement/photos/Mil'
-Myc = '/home/port-mpalerme/Documents/Atipical/Traitement/photos/Myc'
-Pse = '/home/port-mpalerme/Documents/Atipical/Traitement/photos/Pse'
-Syl = '/home/port-mpalerme/Documents/Atipical/Traitement/photos/Syl'
+Alt = '/home/mpalerme/Documents/Atipical_traitement_element_Lydia/photo_jeu_reduit/Alt_bdb_cut2_max' 
+Big = '/home/mpalerme/Documents/Atipical_traitement_element_Lydia/photo_jeu_reduit/Big_bdb_cut2_max'
+Mac = '/home/mpalerme/Documents/Atipical_traitement_element_Lydia/photo_jeu_reduit/Mac_bdb_cut2_max'
+Mil = '/home/mpalerme/Documents/Atipical_traitement_element_Lydia/photo_jeu_reduit/Mil_bdb_cut2_max'
+Myc = '/home/mpalerme/Documents/Atipical_traitement_element_Lydia/photo_jeu_reduit/Myc_bdb_cut2_max'
+Pse = '/home/mpalerme/Documents/Atipical_traitement_element_Lydia/photo_jeu_reduit/Pse_bdb_cut2_max'
+Syl = '/home/mpalerme/Documents/Atipical_traitement_element_Lydia/photo_jeu_reduit/Syl_bdb_cut2_max'
 
 y=np.array([])
 X=[]
@@ -236,18 +236,18 @@ def cal_visu_conf(preds, trues):
 
 
 print("LINEAR Auto")
-print("Acc " + np.array(acc1).mean())
-print("Kappa " + cohen_kappa_score(preds1, trues1))
+print("Acc = " + str(np.array(acc1).mean()))
+print("Kappa = " + str(cohen_kappa_score(preds1, trues1)))
 cal_visu_conf(preds1, trues1)
 
 print("LINEAR")
-print("Acc " + np.array(acc2).mean())
-print("Kappa " + cohen_kappa_score(preds2, trues2))
+print("Acc = " + str(np.array(acc2).mean()))
+print("Kappa = " + str(cohen_kappa_score(preds2, trues2)))
 cal_visu_conf(preds2, trues2)
 
 print("QUADRATIC")
-print("Acc " + np.array(acc3).mean())
-print("Kappa " + cohen_kappa_score(preds3, trues3))
+print("Acc = " + str(np.array(acc3).mean()))
+print("Kappa = " + str(cohen_kappa_score(preds3, trues3)))
 cal_visu_conf(preds3, trues3)
 
 
