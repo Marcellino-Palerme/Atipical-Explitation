@@ -14,9 +14,12 @@ from os import remove
 from PIL import Image
 import logging
 from skimage import morphology, io
-from skimage import measure
-from skimage.morphology import square
+from skimage import measure, color
+from skimage.morphology import square, ball
 import numpy as np
+from del_bg import delete_bg
+from multiprocessing import Pool
+import uuid
 
 col = 1120
 row = 560
@@ -47,10 +50,10 @@ def func_info_residu(img_res_wout_bg):
         temp_img[absc][ordo] = 255
 
     # delete black points in residu
-    temp_img = morphology.closing(temp_img, square(23))
+    temp_img = morphology.closing(temp_img, square(5))
 
     # delete residu dust near residu
-    temp_img = morphology.erosion(temp_img, square(10))
+    temp_img = morphology.erosion(temp_img, square(20))
 
     # Find regions and give informations about them
     temp_img = morphology.label(temp_img)
@@ -76,6 +79,121 @@ def func_map_regionlist(rp_region):
     """
     return {"area": rp_region.area, "centroid": rp_region.centroid}
 
+def my_closing(im_one_channel):
+    return morphology.closing(im_one_channel, square(100))
+
+
+def center(my_file):
+    # read image
+    try:
+        or_im = Image.open(join(dir_in, my_file))
+    except IOError:
+        return 0 
+
+    # keep name file without extension
+    name = splitext(basename(my_file))[0]
+    name_temp = str(uuid.uuid4()) + ".bmp"
+    name_close = str(uuid.uuid4()) + ".bmp"
+    name_max = str(uuid.uuid4()) + ".tiff"
+    
+    # Image smaller bounding-box case
+    if or_im.size[0] < col and or_im.size[1] < row:
+        # Create à black image
+        temp = Image.new("RGB", (col, row))
+        # Paste image
+        temp.paste(or_im)
+        # Save image
+        temp.save(join(dir_out, name + ".bmp"))
+        # pass next image
+        return 0
+    # Column is too small
+    elif or_im.size[0] < col:
+         # Create à black image
+        temp = Image.new("RGB", (col + 10, or_im.size[1]))
+        # Paste image
+        temp.paste(or_im)
+        # Save image
+        temp.save(join(dir_in, name_temp))
+        # Continue work with nex image
+        my_file = name_temp
+        or_im = Image.open(join(dir_in, my_file))
+    # Row is too small
+    elif or_im.size[1] < row:
+         # Create à black image
+        temp = Image.new("RGB", (or_im.size[0], row + 10))
+        # Paste image
+        temp.paste(or_im)
+        # Save image
+        temp.save(join(dir_in, name_temp))
+        # Continue work with nex image
+        my_file = name_temp
+        or_im = Image.open(join(dir_in, my_file))
+
+    # Closing 
+    image = io.imread(join(dir_in, my_file), plugin='matplotlib')
+    image_c = image.copy()
+    image_c[:, :, 0] = morphology.closing(image[:, :, 0], square(100))
+    image_c[:, :, 1] = morphology.closing(image[:, :, 1], square(100))
+    image_c[:, :, 2] = morphology.closing(image[:, :, 2], square(100))
+
+    io.imsave(join(dir_in, name_close), image_c, plugin="pil")
+    
+    # max RGB
+    #change_color(join(dir_in, my_file), join(dir_out, "tmp.tiff"))
+    image = cv2.imread(join(dir_in, name_close))
+    image = max_rgb_filter(image)
+    cv2.imwrite(join(dir_out, name_max), image)
+    im_maxRGB = io.imread(join(dir_out, name_max), plugin='matplotlib')
+    # Find each residu in image
+    residu_maxRGB = func_info_residu(im_maxRGB)
+
+    # Double otsu
+    im_otsu = io.imread(join(dir_in, name_close), plugin='matplotlib')
+    im_otsu = delete_bg(im_otsu, 3)
+    im_otsu = delete_bg(im_otsu, 1)
+
+    # io.imshow(im_otsu)
+    
+    # Find each residu in image
+    residu_otsu = func_info_residu(im_otsu)
+
+    # verify if find residu
+    residu = list(residu_otsu) + list(residu_maxRGB)
+    if len(residu) == 0 :
+        # Take image's center
+        center = [or_im.size[1]//2, or_im.size[0]//2]
+    else:
+        # Sort residus by size
+        residu = sorted(residu, key=lambda k: k["area"])
+        # Keep the bigger residu
+        residu = residu[-1]
+        # Take  residu's center
+        center = [int(np.around(x)) for x in residu["centroid"]]
+
+    # center too close to border
+    if center[0] - (row//2) < 0:
+        center[0] -= center[0] - (row//2)
+    if center[1] - (col//2) < 0:
+        center[1] -= center[1] - (col//2)
+    if center[0] + (row//2) - or_im.size[1] > 0:
+        center[0] = center[0] - (center[0] + (row//2) - or_im.size[1])
+    if center[1] + (col//2) - or_im.size[0] > 0:
+        center[1] -= center[1] + (col//2) - or_im.size[0]
+    
+    or_im = io.imread(join(dir_in, my_file), plugin='matplotlib')
+    io.imsave(join(dir_out, name + ".bmp"), 
+              or_im[center[0]- (row//2):center[0] + (row//2),
+                    center[1] - (col//2):center[1] + (col//2), :],
+              plugin="pil")
+    
+    # Delete temporary files
+    if exists(join(dir_in, name_temp)):
+        remove(join(dir_in, name_temp))
+    if exists(join(dir_in, name_close)):
+        remove(join(dir_in, name_close))
+    if exists(join(dir_out, name_max)):
+        remove(join(dir_out, name_max))
+    return 0
 
 if __name__ == "__main__":
     # take directory where are images
@@ -90,90 +208,5 @@ if __name__ == "__main__":
     # Create out directory
     create_directory(dir_out)
 
-        
-    # delete background of each images
-    for my_file in my_files:
-        # read image
-        try:
-            or_im = Image.open(join(dir_in, my_file))
-        except IOError:
-            continue
-
-        # keep name file without extension
-        name = splitext(basename(my_file))[0]
-        
-        # Image smaller bounding-box case
-        if or_im.size[0] < col and or_im.size[1] < row:
-            # Create à black image
-            temp = Image.new("RGB", (col, row))
-            # Paste image
-            temp.paste(or_im)
-            # Save image
-            temp.save(join(dir_out, name + ".bmp"))
-            # pass next image
-            continue
-        # Column is too small
-        elif or_im.size[0] < col:
-             # Create à black image
-            temp = Image.new("RGB", (col + 10, or_im.size[1]))
-            # Paste image
-            temp.paste(or_im)
-            # Save image
-            temp.save(join(dir_in, "tmp.bmp"))
-            # Continue work with nex image
-            my_file = "tmp.bmp"
-            or_im = Image.open(join(dir_in, my_file))
-        # Row is too small
-        elif or_im.size[1] < row:
-             # Create à black image
-            temp = Image.new("RGB", (or_im.size[0], row + 10))
-            # Paste image
-            temp.paste(or_im)
-            # Save image
-            temp.save(join(dir_in, "tmp.bmp"))
-            # Continue work with nex image
-            my_file = "tmp.bmp"
-            or_im = Image.open(join(dir_in, my_file))
-
-        # max RGB
-        change_color(join(dir_in, my_file), join(dir_out, "tmp.tiff"))
-        image = cv2.imread(join(dir_out, "tmp.tiff"))
-        image = max_rgb_filter(image)
-        cv2.imwrite(join(dir_out, "tmp.tiff"), image)
-
-        im_maxRGB = io.imread(join(dir_out, "tmp.tiff"), plugin='matplotlib')
-        # Find each residu in image
-        residu = func_info_residu(im_maxRGB)
-        # verify if find residu
-        residu = list(residu)
-        if len(residu) == 0 :
-            # Take image's center
-            center = [or_im.size[1]//2, or_im.size[0]//2]
-        else:
-            # Sort residus by size
-            residu = sorted(residu, key=lambda k: k["area"])
-            # Keep the bigger residu
-            residu = residu[-1]
-            # Take  residu's center
-            center = [int(np.around(x)) for x in residu["centroid"]]
-
-        # center too close to border
-        if center[0] - (row//2) < 0:
-            center[0] -= center[0] - (row//2)
-        if center[1] - (col//2) < 0:
-            center[1] -= center[1] - (col//2)
-        if center[0] + (row//2) - or_im.size[1] > 0:
-            center[0] = center[0] - (center[0] + (row//2) - or_im.size[1])
-        if center[1] + (col//2) - or_im.size[0] > 0:
-            center[1] -= center[1] + (col//2) - or_im.size[0]
-        
-        or_im = io.imread(join(dir_in, my_file), plugin='matplotlib')
-        io.imsave(join(dir_out, name + ".bmp"), 
-                  or_im[center[0]- (row//2):center[0] + (row//2),
-                        center[1] - (col//2):center[1] + (col//2), :],
-                  plugin="pil")
-
-    # Delete temporary files
-    remove(join(dir_out, "tmp.tiff"))
-    if exists(join(dir_in, "tmp.bmp")):
-        remove(join(dir_in, "tmp.bmp"))
+    pool = Pool(processes=18)
+    pool.map(center, my_files)       

@@ -13,6 +13,8 @@ from tkinter.filedialog import askdirectory
 from tools_file import file_list
 from os.path import join, splitext
 
+__all__ = ["delete_bg"]
+
 
 def delete_bg(a_rgb_image, ref_threshold=0):
     """!@brief
@@ -70,25 +72,26 @@ def delete_bg(a_rgb_image, ref_threshold=0):
     return a_rgb_image
 
 
-# take directory where are images
-dir_in = askdirectory()
-
-# take all images in directory
-my_files = file_list(dir_in)
-
-# delete background of each images
-for my_file in my_files:
-    try:
-        # read image
-        my_image = io.imread(join(dir_in, my_file))
-    except IOError:
-        continue
-    # delete background
-    # we suppose there are background is pixel inferior Otsu threshold
-    my_image = delete_bg(my_image, 3)
-    # keep name of file without extension
-    name_wo_ext = splitext(my_file)[0]
-    # Save image in tiff to background isn't spread with element
-    io.imsave(join(dir_in, name_wo_ext) + ".tiff", my_image)
+if __name__ == "__main__":
+    # take directory where are images
+    dir_in = askdirectory()
+    
+    # take all images in directory
+    my_files = file_list(dir_in)
+    
+    # delete background of each images
+    for my_file in my_files:
+        try:
+            # read image
+            my_image = io.imread(join(dir_in, my_file))
+        except IOError:
+            continue
+        # delete background
+        # we suppose there are background is pixel inferior Otsu threshold
+        my_image = delete_bg(my_image, 3)
+        # keep name of file without extension
+        name_wo_ext = splitext(my_file)[0]
+        # Save image in tiff to background isn't spread with element
+        io.imsave(join(dir_in, name_wo_ext) + ".tiff", my_image)
     
     	

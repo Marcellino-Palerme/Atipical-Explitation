@@ -7,7 +7,7 @@ Created on Tue Dec 15 09:25:44 2020
 """
 
 from tkinter.filedialog import askdirectory
-from tools_file import file_list
+from tools_file import file_list, create_directory
 from os.path import join
 import numpy as np
 import cv2
@@ -66,6 +66,9 @@ if __name__ == "__main__":
     
     # take directory where save images
     dir_out = askdirectory(title="out")
+    
+    # Create out directory
+    create_directory(dir_out)
     
     # take all images in directory
     my_files = file_list(dir_in)
