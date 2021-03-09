@@ -2,111 +2,106 @@
 # -*- coding: utf-8 -*-
 
 import tensorflow as tf
+from tensorflow.keras.preprocessing.image import img_to_array
 from keras import layers
 from keras.applications import vgg16, vgg19
-from copy import *
 import numpy as np
+from tools_file import file_list
+from os.path import join
+from PIL import Image
 
-batch_size = 20
 # Define size of image
 img_height = 224
 img_width = 224
 
 # Define directory where take image
-# In directoty there is one directory by class
-data_dir = "./deep"
-data_fit = data_dir + "/fit"
+Big = '/home/port-mpalerme/Documents/Atipical/Traitement/photos/deep/fit/Big'
+Mac = '/home/port-mpalerme/Documents/Atipical/Traitement/photos/deep/fit/Mac'
+Myc = '/home/port-mpalerme/Documents/Atipical/Traitement/photos/deep/fit/Myc'
+Pse = '/home/port-mpalerme/Documents/Atipical/Traitement/photos/deep/fit/Pse'
+Syl = '/home/port-mpalerme/Documents/Atipical/Traitement/photos/deep/fit/Syl'
+recto = 'recto'
+verso = 'verso'
 
-# Take images for training
-train_ds = tf.keras.preprocessing.image_dataset_from_directory(
-  data_fit,
-  validation_split=0.2,
-  subset="training",
-  seed=123,
-  image_size=(img_height, img_width),
-  batch_size=batch_size,
-  label_mode='int')
+all_photos_recto = []
+all_photos_verso = []
+all_labels = []
 
-# Take images for validation
-val_ds = tf.keras.preprocessing.image_dataset_from_directory(
-  data_fit,
-  validation_split=0.2,
-  subset="validation",
-  seed=123,
-  image_size=(img_height, img_width),
-  batch_size=batch_size,
-  label_mode='int')
+# Take all images and labels
+for label, where in enumerate([Big, Mac, Myc, Pse, Syl]):
+    files_verso = file_list(join(where, verso))
+    files_recto = file_list(join(where, recto))
+    for file_r, file_v in zip(files_recto, files_verso):
+        try:
+            # Read image recto
+            img_rec = Image.open(join(where, recto, file_r))
+            # Read image verso
+            img_ver = Image.open(join(where, verso, file_v))
+        except IOError :
+            continue
+        # Transform image to array and add array
+        all_photos_recto.append(img_to_array(img_rec))
+        all_photos_verso.append(img_to_array(img_ver))
+        # Add Image's label
+        all_labels.append(label)
 
-# Show all classes
-class_names = train_ds.class_names
-print(class_names)
+all_photos_recto = np.array(all_photos_recto)
+all_photos_verso = np.array(all_photos_verso)
+all_labels = np.array(all_labels)
 
-
-AUTOTUNE = tf.data.experimental.AUTOTUNE
-
-train_ds = train_ds.cache().prefetch(buffer_size=AUTOTUNE)
-val_ds = val_ds.cache().prefetch(buffer_size=AUTOTUNE)
-
-
-
-  # Define the process for augmentation data
-data_augmentation = tf.keras.Sequential([
+# Define the process for augmentation data
+data_augmentation_r = tf.keras.Sequential([
+     tf.keras.Input((img_height, img_width, 3)),
      layers.experimental.preprocessing.Rescaling(1./255),
      layers.experimental.preprocessing.RandomFlip("horizontal_and_vertical"),
-     layers.experimental.preprocessing.RandomRotation(0.2),
-     layers.experimental.preprocessing.RandomZoom(0.2)])
+     layers.experimental.preprocessing.RandomRotation(0.2)])
 
-
-# Augment the datas
-train_aug_ds = train_ds.map(
-  lambda x, y: (data_augmentation(x, training=True), y))
-val_aug_ds = val_ds.map(
-  lambda x, y: (data_augmentation(x, training=True), y))
-
-"""
-for i in range(9):
-    temp = train_ds.map(
-        lambda x, y: (data_augmentation(x, training=True), y))
-    train_aug_ds = train_aug_ds.concatenate(temp)
-    temp = val_ds.map(
-        lambda x, y: (data_augmentation(x, training=True), y))
-    val_aug_ds = val_aug_ds.concatenate(temp)
-"""
+data_augmentation_v = tf.keras.Sequential([
+     tf.keras.Input((img_height, img_width, 3)),
+     layers.experimental.preprocessing.Rescaling(1./255),
+     layers.experimental.preprocessing.RandomFlip("horizontal_and_vertical"),
+     layers.experimental.preprocessing.RandomRotation(0.2)])
 
 # Init the VGG model
 vgg_conv_r = vgg16.VGG16(weights='imagenet', include_top=False,
                          input_shape=(img_height, img_width, 3))
+vgg_conv_r._name = "vgg16_r"
 
 vgg_conv_v = vgg16.VGG16(weights='imagenet', include_top=False,
                          input_shape=(img_height, img_width, 3))
+vgg_conv_v._name = "vgg16_v"
 
-i = 0
-# Training all the layers
+
+# Layer of vgg isn't trainable
+# Change name to can use twice the same model
 for layer in vgg_conv_r.layers[:]:
-    layer.trainable = True
+    layer.trainable = False
     layer._name = layer._name  + str("_2")
-    i = i+ 1
 
 for layer in vgg_conv_v.layers[:]:
-    layer.trainable = True
+    layer.trainable = False
 
-model_verso = vgg_conv_v.output
+# Define the network
+# create parallel models
+model_verso = data_augmentation_v.output
+model_verso = vgg_conv_v(model_verso)
 model_verso = layers.Flatten()(model_verso)
 
-model_recto = vgg_conv_r.output
+model_recto = data_augmentation_r.output
+model_recto = vgg_conv_r(model_recto)
 model_recto = layers.Flatten()(model_recto)
 
 concat = layers.concatenate([model_recto,model_verso])
 
-num_classes = len(class_names)
+num_classes = 5
 
-# Define the network
 model_final = layers.Dense(4096*2, activation='relu')(concat)
 model_final = layers.Dropout(0.5)(model_final)
 model_final = layers.Dense(num_classes, activation='softmax')(model_final)
 
 
-model = tf.keras.Model(inputs=[vgg_conv_r.input, vgg_conv_v.input],
+model = tf.keras.Model(inputs=[data_augmentation_r.input,
+                               data_augmentation_v.input],
                        outputs=model_final)
 
 # Compile the Network
@@ -117,37 +112,13 @@ model.compile(
 
 print(model.summary())
 
-train_ds_1 = copy(train_ds)
-val_ds_1 = copy(val_ds)
-
-train = []
-t_label = []
-val = []
-v_label = []
-
-for value in train_aug_ds.take(-1):
-  for index in range(len(value)):
-    train.append(value[0][index])
-    t_label.append(value[1][index])
-
-for value in val_aug_ds.take(-1):
-  for index in range(len(value)):
-    val.append(value[0][index])
-    v_label.append(value[1][index])
-
-train = np.array(train)
-t_label = np.array(t_label)
-val = np.array(val)
-v_label = np.array(v_label)
-
-print(train[0])
-
 
 # Training the network
 model.fit(
-  x= [train, train], y=t_label,
-  validation_data=([val, val], v_label),
-  epochs=1,
+  x= [all_photos_recto, all_photos_verso], y=all_labels,
+  validation_split = 0.3,
+  epochs=150,
+  verbose=2
 )
 
 # Save the network
