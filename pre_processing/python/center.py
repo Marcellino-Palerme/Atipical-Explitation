@@ -22,7 +22,7 @@ from multiprocessing import Pool
 import uuid
 
 col = 1120
-row = 560
+row = 1120
 
 def func_info_residu(img_res_wout_bg):
     """!@brief
@@ -129,6 +129,7 @@ def center(my_file):
         my_file = name_temp
         or_im = Image.open(join(dir_in, my_file))
 
+    
     # Closing 
     image = io.imread(join(dir_in, my_file), plugin='matplotlib')
     image_c = image.copy()
@@ -148,17 +149,19 @@ def center(my_file):
     residu_maxRGB = func_info_residu(im_maxRGB)
 
     # Double otsu
-    im_otsu = io.imread(join(dir_in, name_close), plugin='matplotlib')
-    im_otsu = delete_bg(im_otsu, 3)
-    im_otsu = delete_bg(im_otsu, 1)
+    try:
+        im_otsu = io.imread(join(dir_in, name_close), plugin='matplotlib')
+        im_otsu = delete_bg(im_otsu, 3)
+        im_otsu = delete_bg(im_otsu, 1)
+  
+        # Find each residu in image
+        residu_otsu = func_info_residu(im_otsu)
 
-    # io.imshow(im_otsu)
-    
-    # Find each residu in image
-    residu_otsu = func_info_residu(im_otsu)
+        # verify if find residu
+        residu = list(residu_otsu) + list(residu_maxRGB)
+    except ValueError:
+        residu = list(residu_maxRGB)
 
-    # verify if find residu
-    residu = list(residu_otsu) + list(residu_maxRGB)
     if len(residu) == 0 :
         # Take image's center
         center = [or_im.size[1]//2, or_im.size[0]//2]
@@ -208,5 +211,5 @@ if __name__ == "__main__":
     # Create out directory
     create_directory(dir_out)
 
-    pool = Pool(processes=18)
+    pool = Pool(processes=3)
     pool.map(center, my_files)       
