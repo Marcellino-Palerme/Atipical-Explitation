@@ -135,8 +135,7 @@ model_checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
 model.compile(
   optimizer='adam',
   loss='sparse_categorical_crossentropy',
-  metrics=['accuracy'],
-  callbacks=[model_checkpoint_callback])
+  metrics=['accuracy'])
 
 print(model.summary())
 
@@ -146,7 +145,8 @@ model.fit(
   x= [train_photos_recto, train_photos_verso], y=train_labels,
   validation_data = ([test_photos_recto, test_photos_verso], test_labels),
   epochs=150,
-  verbose=2
+  verbose=2,
+  callbacks=[model_checkpoint_callback]
 )
 
 # Save the network
