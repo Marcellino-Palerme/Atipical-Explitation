@@ -200,3 +200,39 @@ def axial_symmetry(pointA, pointB, pointM):
                       (1 + (a * a)))
 
     return pointMr
+
+
+def rotate(points, **kargs):
+    """
+
+
+    Parameters
+    ----------
+    points : TYPE
+        DESCRIPTION.
+    **kargs : TYPE
+        DESCRIPTION.
+
+    Returns
+    -------
+    None.
+
+    """
+    # create rotation matrice
+    if "degres" in kargs:
+        # take rotation angle
+        deg = kargs["degres"]
+        # convert degres to radians
+        rad = np.deg2rad(deg)
+        # Create rotation matrice
+        rot_mat = [[np.cos(rad), -np.sin(rad)],
+                   [np.sin(rad), np.cos(rad)]]
+    else:
+        rot_mat = kargs["rot_mat"]
+
+    # apply rotation at all points
+    for index, coords in enumerate(points):
+        points[index] = np.dot(rot_mat, coords)
+
+    return points
+

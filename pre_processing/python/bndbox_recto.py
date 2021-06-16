@@ -9,43 +9,17 @@ from tkinter.filedialog import askdirectory
 from tools_file import file_list_ext, file_list
 from defusedxml.ElementTree import parse
 from os.path import join, basename, splitext
-from skimage import io, feature, filters, color
+from skimage import io, feature, filters, color, transform
 import numpy as np
-from geometry import center, axial_symmetry, translation_vector, translation,\
-                     bounding_box
+from geometry import translation, bounding_box, rotate
 from functools import partial
-from pycpd import AffineRegistration
+from pycpd import affine_registration
 import xml.etree.cElementTree as ET
 
-EXT_IMG = 'bmp'
 RECTO = 'Recto'
 VERSO = 'Verso'
 
-def visualize(points):
-    """
-
-
-    Parameters
-    ----------
-    points : TYPE
-        DESCRIPTION.
-
-    Returns
-    -------
-    None.
-
-    """
-    points = np.rint(points)
-    print(points)
-    shape = np.amax(points, axis=0).astype(int) + 10
-    print(shape)
-    img = np.zeros(shape)
-    for x, y in points:
-        img[int(x),int(y)] = 1
-
-    io.imshow(img)
-
-def extract_edge(path_img):
+def extract_edge(path_img, scale, flip="ud"):
     """
     Extract edge of images
 
@@ -53,23 +27,37 @@ def extract_edge(path_img):
     ----------
     path_img : str
         path of image.
+    scale : float
+        scale.
+    flip : boolean
+        flip horizontal the image
 
     Returns
     -------
     array : coordonate of each point of edge.
 
     """
+    # img_h= io.imread(path_img, True,'pil')
     img = io.imread(path_img)
-
+    # io.imshow(img_h)
     # Keep hue of image
     img_h = color.rgb2hsv(img)[:,:,0]
     # Calcule Otsu thresold
     tso = filters.threshold_otsu(img_h)
+    # rescale image
+    img_h = transform.rescale(img_h, scale)
     # Transform image to have black foreground and white background
     img_h[img_h<tso] = 0
     img_h[img_h>=tso] = 1
+
+    # flip image
+    if(flip == "ud"):
+        img_h = np.flipud(img_h)
+    else:
+        img_h = np.fliplr(img_h)
+
     # Extract edge
-    edge = feature.canny(img_h)
+    edge = feature.canny(img_h,3)
     # Get coordonate of edge
     nonzero = np.nonzero(edge)
     xnonzero = np.reshape(nonzero[0], (-1,1))
@@ -80,7 +68,7 @@ def extract_edge(path_img):
 # Callback function
 # Function to see the progress of the registration
 def trace(iteration, error,X,Y):
-    print('Iteration: {:d}\nError: {:06.4f}'.format(iteration, error))
+    print('Iteration: {:d}\nError: {:06.8f}'.format(iteration, error))
 
 
 def create_xml(directory, name_img, bnd_box, class_name):
@@ -111,8 +99,8 @@ def create_xml(directory, name_img, bnd_box, class_name):
     ET.SubElement(source, "database").text = "Unknown"
     size = ET.SubElement(root, "size")
     img = io.imread(join(directory, name_img))
-    ET.SubElement(size, "width").text = str(img.shape[0])
-    ET.SubElement(size, "height").text = str(img.shape[1])
+    ET.SubElement(size, "width").text = str(img.shape[1])
+    ET.SubElement(size, "height").text = str(img.shape[0])
     ET.SubElement(size, "depth").text = str(img.shape[2])
     ET.SubElement(root, "segmented").text = "0"
     object_ = ET.SubElement(root, "object")
@@ -123,18 +111,18 @@ def create_xml(directory, name_img, bnd_box, class_name):
     bndbox = ET.SubElement(object_, "bndbox")
     xymin = np.amin(bnd_box, axis=0)
     xymax = np.amax(bnd_box, axis=0)
-    ET.SubElement(bndbox, "xmin").text = str(xymin[0])
-    ET.SubElement(bndbox, "ymin").text = str(xymin[1])
-    ET.SubElement(bndbox, "xmax").text = str(xymax[0])
-    ET.SubElement(bndbox, "ymax").text = str(xymax[1])
+    ET.SubElement(bndbox, "xmin").text = str(xymin[1])
+    ET.SubElement(bndbox, "ymin").text = str(xymin[0])
+    ET.SubElement(bndbox, "xmax").text = str(xymax[1])
+    ET.SubElement(bndbox, "ymax").text = str(xymax[0])
 
     tree = ET.ElementTree(root)
-    xml_name = splitext(img_name)[0] + ".xml"
+    xml_name = splitext(name_img)[0] + ".xml"
     tree.write(join(directory, xml_name))
 
 
 
-if __name__ == "__main__":
+def run():
     directory = askdirectory()
     # Take all xml files
     xml_files = file_list_ext(directory, 'xml')
@@ -166,33 +154,35 @@ if __name__ == "__main__":
         if img_name + ".xml" in all_files:
             continue
 
-        # Extract recto edge coodonate
-        recto_coord = extract_edge(join(directory, recto_img_name))
-        # Extract verso edge coodonate
-        verso_coord = extract_edge(join(directory, verso_img_name))
+        # define multi start
+        multi_start = {"ud_0":None, "ud_90":None, "ud_180":None, "ud_270":None,
+                       "lr_0":None, "lr_90":None, "lr_180":None, "lr_270":None}
 
-        # Extract center of recto
-        recto_center = center(recto_coord)
-        print(recto_center)
-        # Extract center of verso
-        verso_center = center(verso_coord)
+        for key in multi_start:
+            # Take kind flip and angle rotation
+            flip, angle = key.split("_")
 
-        # Flip recto image about y axis of center
-        for index, coords in enumerate(recto_coord):
-            recto_coord[index] = axial_symmetry(recto_center,
-                                                [recto_center[0] + 10,
-                                                 recto_center[1]],
-                                                coords)
+            # Extract recto edge coodonate
+            recto_coord = extract_edge(join(directory, recto_img_name),0.1, flip)
+            # Extract verso edge coodonate
+            verso_coord = extract_edge(join(directory, verso_img_name),0.1)
 
-        # Extract translation vector
-        trans_vec = translation_vector(recto_center, verso_center)
-        # Apply the translation to recto
-        recto_coord = translation(recto_coord, trans_vec)
+            recto_coord = rotate(recto_coord,degres=int(angle))
 
-        reg = AffineRegistration(**{'X': verso_coord, 'Y': recto_coord,
-                                    'max_iterations':200, 'tolerance':0.0001})
-        res = reg.register(callback)
+            reg = affine_registration(**{'X': verso_coord,
+                                        'Y': recto_coord,
+                                        'max_iterations':200, 'tolerance':0.0001})
+            reg.register(callback)
+            # save result
+            multi_start[key] = reg
 
+            # visualize(recto_coord_reduc, verso_coord_reduc, res[0])
+
+        # Take the start with the minner error
+        key_min = min(multi_start, key=lambda key : multi_start[key].q)
+        reg = multi_start[key_min]
+        # Take kind flip and angle rotation
+        flip, angle = key_min.split("_")
         # Get extremum of bounding box
         dir_extrem = {}
         for extrem in ['xmin', 'ymin', 'xmax', 'ymax']:
@@ -203,21 +193,66 @@ if __name__ == "__main__":
         bnd_box = bounding_box([[dir_extrem['xmin'], dir_extrem['ymin']],
                                 [dir_extrem['xmax'], dir_extrem['ymax']]])
 
-        # Flip recto bounding box about y axis of recto center
-        for index, coords in enumerate(bnd_box):
-            bnd_box[index] = axial_symmetry(recto_center,
-                                            [recto_center[0] + 10,
-                                             recto_center[1]],
-                                            coords)
+        # take image recto
+        img_recto = io.imread(join(directory, recto_img_name), True)
+        # put image at zero
+        img_recto[img_recto>0] = 0
+        # put bounding box
+        img_recto[dir_extrem['ymin']:dir_extrem['ymax'],
+                  dir_extrem['xmin']:dir_extrem['xmax']] = 1
+
+        # rescale image
+        img_recto = transform.rescale(img_recto, 0.1)
+        img_recto[img_recto>0] = 1
+
+        # flip bounding box
+        if(flip == "ud"):
+            img_recto = np.flipud(img_recto)
+        else:
+            img_recto = np.fliplr(img_recto)
+
+        # Get new coordonates of bounding box
+        nonzero = np.nonzero(img_recto)
+        xnonzero = np.reshape(nonzero[0], (-1,1))
+        ynonzero = np.reshape(nonzero[1], (-1,1))
+        bnd_box = np.concatenate((xnonzero, ynonzero), axis=1)
+
+        bnd_box = rotate(bnd_box, degres=int(angle))
+        # Rotate the bounding box
+        bnd_box = rotate(bnd_box, rot_mat=reg.B)
+        # bnd_box = rotate(bnd_box, rot_mat=reg.R)
 
         # Translate the bounding box
-        bnd_box = translation(bnd_box, trans_vec)
+        bnd_box = translation(bnd_box, np.array(reg.t))
 
-        # Rotate the bounding box
-        for index, coords in enumerate(bnd_box):
-            bnd_box[index] = np.dot(res[1][0], coords)
+        # put image at zero
+        img_recto[img_recto>0] = 0
+        # rescale image
+        #img_recto = transform.rescale(img_recto, 10)
+
+        img_recto = np.zeros((1000,1000))
+
+        # put bounding box on image
+        for coord in bnd_box:
+            if coord[0]>0 and coord[1]>0 :
+                img_recto[int(np.around(coord[0])),
+                          int(np.around(coord[1]))] = 1
+
+        # rescale image
+        img_recto = transform.rescale(img_recto, 10)
+
+        # Get new coordonates of bounding box
+        nonzero = np.nonzero(img_recto)
+        if len(nonzero[0]) == 0:
+            continue
+        xnonzero = np.reshape(nonzero[0], (-1,1))
+        ynonzero = np.reshape(nonzero[1], (-1,1))
+        bnd_box = np.concatenate((xnonzero, ynonzero), axis=1)
 
         # Create bounding box of bounding box
         bnd_box = bounding_box(bnd_box)
 
         create_xml(directory, verso_img_name, bnd_box, "Alt")
+
+if __name__ == "__main__":
+    run()
