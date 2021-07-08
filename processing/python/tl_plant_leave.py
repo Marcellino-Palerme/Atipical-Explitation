@@ -13,6 +13,7 @@ from sklearn.metrics import confusion_matrix, classification_report
 import argparse
 from os.path import join
 import pandas as pd
+from tools_file import create_directory
 
 
 parser = argparse.ArgumentParser()
@@ -24,6 +25,9 @@ args = parser.parse_args()
 
 # gpus = tf.config.experimental.list_physical_devices('GPU')
 # tf.config.experimental.set_memory_growth(gpus[0], True)
+
+# create output directory
+create_directory(args.output)
 
 # Define size of image
 img_height = 132
