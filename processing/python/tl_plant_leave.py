@@ -14,17 +14,15 @@ import argparse
 from os.path import join
 import pandas as pd
 from tools_file import create_directory
+import pickle
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument("-i", dest="input", help="Directory contains images ")
+parser.add_argument("-i", dest="input", help="Directory serial files ")
 parser.add_argument("-o", dest="output", help="Directory to save results")
 parser.add_argument("-5", dest="ENB5", help="choose EfficientNetB5",
                     action="store_true")
 args = parser.parse_args()
-
-# gpus = tf.config.experimental.list_physical_devices('GPU')
-# tf.config.experimental.set_memory_growth(gpus[0], True)
 
 # create output directory
 create_directory(args.output)
@@ -33,21 +31,6 @@ create_directory(args.output)
 img_height = 132
 img_width = 132
 
-# Define directory where take image
-data_dir = args.input
-
-# Take all images
-ds_full = tf.keras.preprocessing.image_dataset_from_directory(
-    data_dir,
-    seed = 159,
-    image_size=(img_height, img_width),
-    batch_size = 1)
-
-# define number elements of each part
-ds_size = len(ds_full)
-train_indice = int(0.9 * ds_size)
-valid_indice = int(0.07 * ds_size) + train_indice
-
 a_img_train = []
 a_lab_train = []
 a_img_valid = []
@@ -55,24 +38,30 @@ a_lab_valid = []
 a_img_test = []
 a_lab_test = []
 
-# Split dataset
-for index, data in enumerate(ds_full):
-    if index < train_indice:
-        a_img_train.append(data[0])
-        a_lab_train.append(data[1])
-    if train_indice <= index < valid_indice:
-        a_img_valid.append(data[0])
-        a_lab_valid.append(data[1])
-    if index >= valid_indice:
-        a_img_test.append(data[0])
-        a_lab_test.append(data[1])
+for index in range(1,4):
+    # open file of serialization
+    input_serial = open(join(args.input, "img_train_" + str(index) + "_3.pkl"),
+                        "rb")
+    # load data
+    if a_img_train == []:
+        a_img_train = pickle.load(input_serial)
+    else:
+        a_img_train = np.concatenate((a_img_train, pickle.load(input_serial)),
+                                     axis=0)
+    # Close file
+    input_serial.close() 
 
-a_img_train = np.array(a_img_train).reshape((-1, img_height, img_width, 3))
-a_lab_train = np.array(a_lab_train).reshape((-1))
-a_img_valid = np.array(a_img_valid).reshape((-1, img_height, img_width, 3))
-a_lab_valid = np.array(a_lab_valid).reshape((-1))
-a_img_test = np.array(a_img_test).reshape((-1, img_height, img_width, 3))
-a_lab_test = np.array(a_lab_test).reshape((-1))
+for name_var in ["a_lab_train", "a_img_valid", "a_lab_valid", "a_img_test",
+                 "a_lab_test"]:
+    # open file of serialization
+    input_serial = open(join(args.input, name_var + ".pkl"), "rb")
+    # load data
+    exec(name_var + "= pickle.load(input_serial)")
+    # Close file
+    input_serial.close()
+
+# Calculate number of classes
+nb_classes = len(np.unique(a_lab_train))
 
 if args.ENB5 :
     # Init EfficientNet B5
@@ -83,18 +72,12 @@ else :
     EN_BX_conf = EfficientNetB4(weights='imagenet', include_top=False,
                                 input_shape=(img_height, img_width, 3))
 
-# training all the layers
-for layer in EN_BX_conf.layers[:]:
-    layer.trainable = True
-
-num_classes = len(ds_full.class_names)
 
 # Define the network
 model = tf.keras.Sequential([
   layers.experimental.preprocessing.Rescaling(1./255),
   EN_BX_conf,
-  layers.Flatten(),
-  layers.Dense(num_classes, activation='softmax')
+  layers.Dense(nb_classes, activation='softmax')
 ])
 
 # Compile the Network
@@ -138,7 +121,7 @@ for pred , our_max in zip(predict, pred_max):
 
 # Calculate confusion matrix
 conf_mat = confusion_matrix(a_lab_test, label_pred,
-                            labels=range(len(ds_full.class_names)),
+                            labels=range(),
                             normalize='true')
 # Save confusion matrix
 df_conf_mat = pd.DataFrame(conf_mat)
