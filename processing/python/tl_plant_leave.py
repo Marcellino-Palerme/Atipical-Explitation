@@ -77,6 +77,7 @@ else :
 model = tf.keras.Sequential([
   layers.experimental.preprocessing.Rescaling(1./255),
   EN_BX_conf,
+  layers.Flatten(),
   layers.Dense(nb_classes, activation='softmax')
 ])
 
@@ -121,7 +122,7 @@ for pred , our_max in zip(predict, pred_max):
 
 # Calculate confusion matrix
 conf_mat = confusion_matrix(a_lab_test, label_pred,
-                            labels=range(),
+                            labels=range(nb_classes),
                             normalize='true')
 # Save confusion matrix
 df_conf_mat = pd.DataFrame(conf_mat)
