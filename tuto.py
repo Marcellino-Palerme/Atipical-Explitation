@@ -13,12 +13,8 @@ import tensorflow as tf
 
 from tensorflow.keras.preprocessing import image_dataset_from_directory
 
-_URL = 'https://storage.googleapis.com/mledu-datasets/cats_and_dogs_filtered.zip'
-path_to_zip = tf.keras.utils.get_file('cats_and_dogs.zip', origin=_URL, extract=True)
-PATH = os.path.join(os.path.dirname(path_to_zip), 'cats_and_dogs_filtered')
 
-train_dir = os.path.join(PATH, 'train')
-validation_dir = os.path.join(PATH, 'validation')
+train_dir = "/My_Doc/atipical-exploi/data/test"
 
 BATCH_SIZE = 32
 IMG_SIZE = (160, 160)
@@ -26,16 +22,22 @@ IMG_SIZE = (160, 160)
 train_dataset = image_dataset_from_directory(train_dir,
                                              shuffle=True,
                                              batch_size=BATCH_SIZE,
-                                             image_size=IMG_SIZE)
+                                             image_size=IMG_SIZE,
+                                             validation_split=0.1,
+                                             subset="training",
+                                             seed=159)
 
-validation_dataset = image_dataset_from_directory(validation_dir,
+validation_dataset = image_dataset_from_directory(train_dir,
                                                   shuffle=True,
                                                   batch_size=BATCH_SIZE,
-                                                  image_size=IMG_SIZE)
+                                                  image_size=IMG_SIZE,
+                                                  validation_split=0.1,
+                                                  subset="validation",
+                                                  seed=159)
 
 val_batches = tf.data.experimental.cardinality(validation_dataset)
-test_dataset = validation_dataset.take(val_batches // 5)
-validation_dataset = validation_dataset.skip(val_batches // 5)
+test_dataset = validation_dataset.take(3*(val_batches // 10))
+validation_dataset = validation_dataset.skip(3*(val_batches // 10))
 
 print('Number of validation batches: %d' % tf.data.experimental.cardinality(validation_dataset))
 print('Number of test batches: %d' % tf.data.experimental.cardinality(test_dataset))
@@ -54,7 +56,7 @@ base_model.trainable = False
 
 global_average_layer = tf.keras.layers.GlobalAveragePooling2D()
 
-prediction_layer = tf.keras.layers.Dense(1)
+prediction_layer = tf.keras.layers.Dense(3)
 
 
 inputs = tf.keras.Input(shape=(160, 160, 3))
@@ -67,10 +69,12 @@ model = tf.keras.Model(inputs, outputs)
 
 base_learning_rate = 0.0001
 model.compile(optimizer=tf.keras.optimizers.Adam(lr=base_learning_rate),
-              loss=tf.keras.losses.BinaryCrossentropy(from_logits=True),
+              loss='sparse_categorical_crossentropy',
               metrics=['accuracy'])
+
 
 history = model.fit(train_dataset,
                     epochs=10,
-                    validation_data=validation_dataset)
+                    validation_data=validation_dataset,
+                    verbose=2)
 
