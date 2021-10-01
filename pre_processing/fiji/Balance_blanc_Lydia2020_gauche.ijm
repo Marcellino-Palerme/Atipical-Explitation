@@ -7,7 +7,7 @@
 
    
 // White balance by Vytas Bindokas, 
-macro "White balance" {
+macro "White balance gauche" {
 Vl_Str_Image_Format = "JPG";			// spécifications d'entrée et de sortie des images
 Vl_Str_Image_Format_Sortie = "jpg";
 Dialog.create("Parametres de la macro Balance des blancs ");
@@ -33,7 +33,7 @@ for (f=0; f<list.length; f++) {	//main files loop
 
 run("Colors...", "foreground=white background=black selection=yellow");
 setTool("rectangle");
-makeRectangle(100, 2100, 136, 160);
+makeRectangle(300, 1600, 136, 160);
 //waitForUser("draw rectangle for white balance, then hit OK");
 
 // beginning of inserted white balance macro code

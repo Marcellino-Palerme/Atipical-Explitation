@@ -71,14 +71,16 @@ def trace(iteration, error,X,Y):
     print('Iteration: {:d}\nError: {:06.8f}'.format(iteration, error))
 
 
-def create_xml(directory, name_img, bnd_box, class_name):
+def create_xml(dir_in, dir_out, name_img, bnd_box, class_name):
     """
     Create xml for define bounding_box of image
 
     Parameters
     ----------
-    directory : TYPE
+    dir_in : TYPE
         DESCRIPTION.
+    dir_out : TYPE
+        DESCRIPTION
     name_img : TYPE
         DESCRIPTION.
     bnd_box : TYPE
@@ -92,13 +94,13 @@ def create_xml(directory, name_img, bnd_box, class_name):
 
     """
     root = ET.Element("annotation")
-    ET.SubElement(root, "folder").text = basename(directory)
+    ET.SubElement(root, "folder").text = basename(dir_in)
     ET.SubElement(root, "filename").text = name_img
-    ET.SubElement(root, "path").text = join(directory, name_img)
+    ET.SubElement(root, "path").text = join(dir_in, name_img)
     source = ET.SubElement(root, "source")
     ET.SubElement(source, "database").text = "Unknown"
     size = ET.SubElement(root, "size")
-    img = io.imread(join(directory, name_img))
+    img = io.imread(join(dir_in, name_img))
     ET.SubElement(size, "width").text = str(img.shape[1])
     ET.SubElement(size, "height").text = str(img.shape[0])
     ET.SubElement(size, "depth").text = str(img.shape[2])
@@ -118,16 +120,19 @@ def create_xml(directory, name_img, bnd_box, class_name):
 
     tree = ET.ElementTree(root)
     xml_name = splitext(name_img)[0] + ".xml"
-    tree.write(join(directory, xml_name))
+    tree.write(join(dir_out, xml_name))
 
 
 
 def run():
-    directory = askdirectory()
+    # Ask diretory of input
+    dir_in = askdirectory(title="In")
+    # Ask diretory of output
+    dir_out = askdirectory(title="Out")
     # Take all xml files
-    xml_files = file_list_ext(directory, 'xml')
+    xml_files = file_list_ext(dir_in, 'xml')
     # Take all files
-    all_files = file_list(directory)
+    all_files = file_list(dir_in)
 
     # Follow the progress of the rigid registration function
     callback = partial(trace)
@@ -136,7 +141,7 @@ def run():
     # Verso xml containt the bounding box for verso image
     for xml_file in xml_files:
         # parse the xml
-        xml = parse(join(directory, xml_file))
+        xml = parse(join(dir_in, xml_file))
         for tag in xml.findall('path'):
             # Take recto image name
             recto_img_name = basename(tag.text)
@@ -153,6 +158,9 @@ def run():
         img_name = splitext(verso_img_name)[0]
         if img_name + ".xml" in all_files:
             continue
+        
+        # Get symptom name
+        symptom_name = xml.find("object/name").text
 
         # define multi start
         multi_start = {"ud_0":None, "ud_90":None, "ud_180":None, "ud_270":None,
@@ -163,9 +171,9 @@ def run():
             flip, angle = key.split("_")
 
             # Extract recto edge coodonate
-            recto_coord = extract_edge(join(directory, recto_img_name),0.1, flip)
+            recto_coord = extract_edge(join(dir_in, recto_img_name),0.1, flip)
             # Extract verso edge coodonate
-            verso_coord = extract_edge(join(directory, verso_img_name),0.1)
+            verso_coord = extract_edge(join(dir_in, verso_img_name),0.1)
 
             recto_coord = rotate(recto_coord,degres=int(angle))
 
@@ -194,7 +202,7 @@ def run():
                                 [dir_extrem['xmax'], dir_extrem['ymax']]])
 
         # take image recto
-        img_recto = io.imread(join(directory, recto_img_name), True)
+        img_recto = io.imread(join(dir_in, recto_img_name), True)
         # put image at zero
         img_recto[img_recto>0] = 0
         # put bounding box
@@ -252,7 +260,7 @@ def run():
         # Create bounding box of bounding box
         bnd_box = bounding_box(bnd_box)
 
-        create_xml(directory, verso_img_name, bnd_box, "Alt")
+        create_xml(dir_in, dir_out, verso_img_name, bnd_box, symptom_name)
 
 if __name__ == "__main__":
     run()

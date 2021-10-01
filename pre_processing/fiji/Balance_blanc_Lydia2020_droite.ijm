@@ -7,7 +7,7 @@
 
    
 // White balance by Vytas Bindokas, 
-macro "White balance" {
+macro "White balance droite" {
 Vl_Str_Image_Format = "JPG";			// spécifications d'entrée et de sortie des images
 Vl_Str_Image_Format_Sortie = "jpg";
 Dialog.create("Parametres de la macro Balance des blancs ");
