@@ -1,0 +1,105 @@
+2021-09-01 11:08:51.641194: I tensorflow/stream_executor/platform/default/dso_loader.cc:48] Successfully opened dynamic library libcudart.so.10.1
+2021-09-01 11:08:56.454148: I tensorflow/stream_executor/platform/default/dso_loader.cc:48] Successfully opened dynamic library libcuda.so.1
+2021-09-01 11:09:00.251589: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1716] Found device 0 with properties: 
+pciBusID: 0000:1a:00.0 name: Tesla V100-SXM2-16GB computeCapability: 7.0
+coreClock: 1.53GHz coreCount: 80 deviceMemorySize: 15.78GiB deviceMemoryBandwidth: 836.37GiB/s
+2021-09-01 11:09:00.251645: I tensorflow/stream_executor/platform/default/dso_loader.cc:48] Successfully opened dynamic library libcudart.so.10.1
+2021-09-01 11:09:00.254907: I tensorflow/stream_executor/platform/default/dso_loader.cc:48] Successfully opened dynamic library libcublas.so.10
+2021-09-01 11:09:00.257640: I tensorflow/stream_executor/platform/default/dso_loader.cc:48] Successfully opened dynamic library libcufft.so.10
+2021-09-01 11:09:00.258692: I tensorflow/stream_executor/platform/default/dso_loader.cc:48] Successfully opened dynamic library libcurand.so.10
+2021-09-01 11:09:00.261509: I tensorflow/stream_executor/platform/default/dso_loader.cc:48] Successfully opened dynamic library libcusolver.so.10
+2021-09-01 11:09:00.263146: I tensorflow/stream_executor/platform/default/dso_loader.cc:48] Successfully opened dynamic library libcusparse.so.10
+2021-09-01 11:09:00.268953: I tensorflow/stream_executor/platform/default/dso_loader.cc:48] Successfully opened dynamic library libcudnn.so.7
+2021-09-01 11:09:00.270397: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1858] Adding visible gpu devices: 0
+2021-09-01 11:09:00.271250: I tensorflow/core/platform/cpu_feature_guard.cc:142] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN)to use the following CPU instructions in performance-critical operations:  AVX2 AVX512F FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2021-09-01 11:09:00.280995: I tensorflow/core/platform/profile_utils/cpu_utils.cc:104] CPU Frequency: 2200000000 Hz
+2021-09-01 11:09:00.281140: I tensorflow/compiler/xla/service/service.cc:168] XLA service 0x5582946c7610 initialized for platform Host (this does not guarantee that XLA will be used). Devices:
+2021-09-01 11:09:00.281158: I tensorflow/compiler/xla/service/service.cc:176]   StreamExecutor device (0): Host, Default Version
+2021-09-01 11:09:00.377763: I tensorflow/compiler/xla/service/service.cc:168] XLA service 0x5582946db040 initialized for platform CUDA (this does not guarantee that XLA will be used). Devices:
+2021-09-01 11:09:00.378000: I tensorflow/compiler/xla/service/service.cc:176]   StreamExecutor device (0): Tesla V100-SXM2-16GB, Compute Capability 7.0
+2021-09-01 11:09:00.378859: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1716] Found device 0 with properties: 
+pciBusID: 0000:1a:00.0 name: Tesla V100-SXM2-16GB computeCapability: 7.0
+coreClock: 1.53GHz coreCount: 80 deviceMemorySize: 15.78GiB deviceMemoryBandwidth: 836.37GiB/s
+2021-09-01 11:09:00.378892: I tensorflow/stream_executor/platform/default/dso_loader.cc:48] Successfully opened dynamic library libcudart.so.10.1
+2021-09-01 11:09:00.378917: I tensorflow/stream_executor/platform/default/dso_loader.cc:48] Successfully opened dynamic library libcublas.so.10
+2021-09-01 11:09:00.378930: I tensorflow/stream_executor/platform/default/dso_loader.cc:48] Successfully opened dynamic library libcufft.so.10
+2021-09-01 11:09:00.378942: I tensorflow/stream_executor/platform/default/dso_loader.cc:48] Successfully opened dynamic library libcurand.so.10
+2021-09-01 11:09:00.378953: I tensorflow/stream_executor/platform/default/dso_loader.cc:48] Successfully opened dynamic library libcusolver.so.10
+2021-09-01 11:09:00.378965: I tensorflow/stream_executor/platform/default/dso_loader.cc:48] Successfully opened dynamic library libcusparse.so.10
+2021-09-01 11:09:00.378987: I tensorflow/stream_executor/platform/default/dso_loader.cc:48] Successfully opened dynamic library libcudnn.so.7
+2021-09-01 11:09:00.380279: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1858] Adding visible gpu devices: 0
+2021-09-01 11:09:00.380309: I tensorflow/stream_executor/platform/default/dso_loader.cc:48] Successfully opened dynamic library libcudart.so.10.1
+2021-09-01 11:09:00.903541: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1257] Device interconnect StreamExecutor with strength 1 edge matrix:
+2021-09-01 11:09:00.903581: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1263]      0 
+2021-09-01 11:09:00.903588: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1276] 0:   N 
+2021-09-01 11:09:00.905063: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1402] Created TensorFlow device (/job:localhost/replica:0/task:0/device:GPU:0 with 14763 MB memory) -> physical GPU (device: 0, name: Tesla V100-SXM2-16GB, pci bus id: 0000:1a:00.0, compute capability: 7.0)
+2021-09-01 11:09:15.120463: I tensorflow/stream_executor/platform/default/dso_loader.cc:48] Successfully opened dynamic library libcublas.so.10
+2021-09-01 11:09:15.571715: I tensorflow/stream_executor/platform/default/dso_loader.cc:48] Successfully opened dynamic library libcudnn.so.7
+Found 3926 files belonging to 7 classes.
+Found 491 files belonging to 7 classes.
+Found 491 files belonging to 7 classes.
+Number of validation batches: 16
+Number of test batches: 16
+Epoch 1/30
+123/123 - 16s - loss: 1.4149 - accuracy: 0.6416 - val_loss: 1.0708 - val_accuracy: 0.6375
+Epoch 2/30
+123/123 - 12s - loss: 0.8520 - accuracy: 0.7471 - val_loss: 0.7093 - val_accuracy: 0.7434
+Epoch 3/30
+123/123 - 12s - loss: 0.6759 - accuracy: 0.7809 - val_loss: 0.6438 - val_accuracy: 0.7678
+Epoch 4/30
+123/123 - 13s - loss: 0.5713 - accuracy: 0.8039 - val_loss: 0.5775 - val_accuracy: 0.7923
+Epoch 5/30
+123/123 - 12s - loss: 0.5019 - accuracy: 0.8207 - val_loss: 0.6221 - val_accuracy: 0.8004
+Epoch 6/30
+123/123 - 13s - loss: 0.4668 - accuracy: 0.8271 - val_loss: 0.5710 - val_accuracy: 0.8024
+Epoch 7/30
+123/123 - 12s - loss: 0.4355 - accuracy: 0.8413 - val_loss: 0.5286 - val_accuracy: 0.8269
+Epoch 8/30
+123/123 - 12s - loss: 0.4244 - accuracy: 0.8454 - val_loss: 0.5567 - val_accuracy: 0.8004
+Epoch 9/30
+123/123 - 13s - loss: 0.4130 - accuracy: 0.8464 - val_loss: 0.5434 - val_accuracy: 0.8167
+Epoch 10/30
+123/123 - 12s - loss: 0.4129 - accuracy: 0.8518 - val_loss: 0.6038 - val_accuracy: 0.7780
+Epoch 11/30
+123/123 - 13s - loss: 0.3997 - accuracy: 0.8505 - val_loss: 0.6012 - val_accuracy: 0.7923
+Epoch 12/30
+123/123 - 12s - loss: 0.3937 - accuracy: 0.8467 - val_loss: 0.5741 - val_accuracy: 0.7963
+Epoch 13/30
+123/123 - 12s - loss: 0.3657 - accuracy: 0.8632 - val_loss: 0.4907 - val_accuracy: 0.8208
+Epoch 14/30
+123/123 - 13s - loss: 0.3747 - accuracy: 0.8602 - val_loss: 0.5793 - val_accuracy: 0.8086
+Epoch 15/30
+123/123 - 12s - loss: 0.3782 - accuracy: 0.8645 - val_loss: 0.5677 - val_accuracy: 0.7963
+Epoch 16/30
+123/123 - 13s - loss: 0.3478 - accuracy: 0.8729 - val_loss: 0.5844 - val_accuracy: 0.7841
+Epoch 17/30
+123/123 - 12s - loss: 0.3657 - accuracy: 0.8678 - val_loss: 0.6374 - val_accuracy: 0.7984
+Epoch 18/30
+123/123 - 12s - loss: 0.3438 - accuracy: 0.8706 - val_loss: 0.5575 - val_accuracy: 0.8024
+Epoch 19/30
+123/123 - 13s - loss: 0.3507 - accuracy: 0.8688 - val_loss: 0.5720 - val_accuracy: 0.8024
+Epoch 20/30
+123/123 - 12s - loss: 0.3449 - accuracy: 0.8767 - val_loss: 0.5400 - val_accuracy: 0.8086
+Epoch 21/30
+123/123 - 13s - loss: 0.3463 - accuracy: 0.8665 - val_loss: 0.5769 - val_accuracy: 0.8004
+Epoch 22/30
+123/123 - 12s - loss: 0.3546 - accuracy: 0.8696 - val_loss: 0.6087 - val_accuracy: 0.7963
+Epoch 23/30
+123/123 - 12s - loss: 0.3597 - accuracy: 0.8635 - val_loss: 0.5331 - val_accuracy: 0.8086
+Epoch 24/30
+123/123 - 12s - loss: 0.3492 - accuracy: 0.8632 - val_loss: 0.5464 - val_accuracy: 0.8126
+Epoch 25/30
+123/123 - 12s - loss: 0.3167 - accuracy: 0.8818 - val_loss: 0.6071 - val_accuracy: 0.7841
+Epoch 26/30
+123/123 - 13s - loss: 0.3413 - accuracy: 0.8803 - val_loss: 0.5667 - val_accuracy: 0.8187
+Epoch 27/30
+123/123 - 12s - loss: 0.3345 - accuracy: 0.8772 - val_loss: 0.5156 - val_accuracy: 0.8228
+Epoch 28/30
+123/123 - 12s - loss: 0.3401 - accuracy: 0.8765 - val_loss: 0.5720 - val_accuracy: 0.8065
+Epoch 29/30
+123/123 - 13s - loss: 0.3462 - accuracy: 0.8650 - val_loss: 0.5724 - val_accuracy: 0.8045
+Epoch 30/30
+123/123 - 12s - loss: 0.3261 - accuracy: 0.8800 - val_loss: 0.5511 - val_accuracy: 0.8228
+ 1/16 [>.............................] - ETA: 0s - loss: 0.7259 - accuracy: 0.8750 2/16 [==>...........................] - ETA: 0s - loss: 0.4959 - accuracy: 0.8906 3/16 [====>.........................] - ETA: 0s - loss: 0.5399 - accuracy: 0.8333 4/16 [======>.......................] - ETA: 0s - loss: 0.5619 - accuracy: 0.8203 5/16 [========>.....................] - ETA: 0s - loss: 0.5327 - accuracy: 0.8438 6/16 [==========>...................] - ETA: 0s - loss: 0.6189 - accuracy: 0.8333 7/16 [============>.................] - ETA: 0s - loss: 0.5738 - accuracy: 0.8348 8/16 [==============>...............] - ETA: 0s - loss: 0.5931 - accuracy: 0.8203 9/16 [===============>..............] - ETA: 0s - loss: 0.6201 - accuracy: 0.816010/16 [=================>............] - ETA: 0s - loss: 0.5983 - accuracy: 0.818811/16 [===================>..........] - ETA: 0s - loss: 0.5676 - accuracy: 0.829512/16 [=====================>........] - ETA: 0s - loss: 0.5698 - accuracy: 0.822913/16 [=======================>......] - ETA: 0s - loss: 0.5597 - accuracy: 0.824514/16 [=========================>....] - ETA: 0s - loss: 0.5477 - accuracy: 0.828115/16 [===========================>..] - ETA: 0s - loss: 0.5522 - accuracy: 0.829216/16 [==============================] - 1s 70ms/step - loss: 0.5443 - accuracy: 0.8310
+0.8309572339057922
