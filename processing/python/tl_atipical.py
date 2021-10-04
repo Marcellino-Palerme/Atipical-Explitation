@@ -6,12 +6,10 @@ Created on Mon Jul 19 15:58:25 2021
 @author: mpalerme
 """
 
-import matplotlib.pyplot as plt
 import numpy as np
 import os
 import tensorflow as tf
-from sklearn.metrics import confusion_matrix, classification_report,accuracy_score
-import pickle
+
 
 from tensorflow.keras.preprocessing import image_dataset_from_directory
 
@@ -86,7 +84,7 @@ for index in range(10):
 
     loss, accuracy = model.evaluate(test_dataset)
     print(accuracy)
-    results.append(accurancy)
+    results.append(accuracy)
 
 
 results = np.array(results)
