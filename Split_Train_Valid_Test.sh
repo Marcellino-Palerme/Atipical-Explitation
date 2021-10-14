@@ -66,7 +66,7 @@ do
    mkdir -p "$2/validation/$class"
    mkdir -p "$2/test/$class"
    # get a shuffle list of image of class
-   lt_images=($(ls -1 $1/$class | shuf))
+   lt_images=($(ls -1 $1/$class | grep -i recto | shuf))
    # get number file in directory
    tot_size=${#lt_images[*]}
    

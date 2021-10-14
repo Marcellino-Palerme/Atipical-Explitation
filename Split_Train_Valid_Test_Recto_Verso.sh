@@ -69,7 +69,7 @@ do
    mkdir -p "$2/validation/$class/verso"
    mkdir -p "$2/test/$class/verso"
    # get a shuffle list of image of class
-   lt_images=($(ls -1 "$1/$class/recto" | shuf))
+   lt_images=($(ls -1 "$1/$class" | grep -i recto | shuf))
    # get number file in directory
    tot_size=${#lt_images[*]}
    
@@ -92,18 +92,18 @@ do
       if (( $(echo "$index < $train_size" | bc -l) )) 
       then
          # add symbolic link of image in train
-         ln -s "$1/$class/recto/${lt_images[$index]}" "$2/train/$class/recto"
-         ln -s "$1/$class/verso/$img_verso" "$2/train/$class/verso"
+         ln -s "$1/$class/${lt_images[$index]}" "$2/train/$class/recto"
+         ln -s "$1/$class/$img_verso" "$2/train/$class/verso"
       elif (( $(echo "$index < $valid_index" | bc -l) )) 
       then
          # add symbolic link of image in validation
-         ln -s "$1/$class/recto/${lt_images[$index]}" "$2/validation/$class/recto"
-         ln -s "$1/$class/verso/$img_verso" "$2/validation/$class/verso"
+         ln -s "$1/$class/${lt_images[$index]}" "$2/validation/$class/recto"
+         ln -s "$1/$class/$img_verso" "$2/validation/$class/verso"
       elif (( $(echo "$index >= $valid_index" | bc -l) ))
       then
          # add symbolic link of image in test
-         ln -s "$1/$class/recto/${lt_images[$index]}" "$2/test/$class/recto"
-         ln -s "$1/$class/verso/$img_verso" "$2/test/$class/verso"
+         ln -s "$1/$class/${lt_images[$index]}" "$2/test/$class/recto"
+         ln -s "$1/$class/$img_verso" "$2/test/$class/verso"
       fi
    done
      
