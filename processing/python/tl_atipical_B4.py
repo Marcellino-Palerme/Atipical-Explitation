@@ -154,14 +154,19 @@ for index in range(10):
         global_y_pred.append(test_dataset.class_names[pos[0][0]])
 
     cmp.cm_print(os.path.join(DIR_OUT,
-                              MY_DATE + "_nor_confusion_matrix_" + str(index)),
+                              MY_DATE + "_nor_confusion_matrix_" + str(index) +
+                              ".csv"),
                  y_true,
-                 y_pred)
+                 y_pred,
+                 test_dataset.class_names)
 
     cmp.cm_print(os.path.join(DIR_OUT,
-                              MY_DATE + "_confusion_matrix_" + str(index)),
+                              MY_DATE + "_confusion_matrix_" + str(index) +
+                              ".csv"),
                  y_true,
-                 y_pred)
+                 y_pred,
+                 test_dataset.class_names,
+                 True)
 
 
 results_acc = np.array(results_acc)
@@ -172,11 +177,14 @@ print("variance : " + str(results_acc.var()))
 print("standard deviation  : " + str(results_acc.std()))
 # Print global confusion matrix
 cmp.cm_print(os.path.join(DIR_OUT,
-                          MY_DATE + "_nor_confusion_matrix_global"),
+                          MY_DATE + "_nor_confusion_matrix_global.csv"),
              global_y_true,
-             global_y_pred)
+             global_y_pred,
+             test_dataset.class_names)
 
 cmp.cm_print(os.path.join(DIR_OUT,
-                          MY_DATE + "_confusion_matrix_global"),
+                          MY_DATE + "_confusion_matrix_global.csv"),
              global_y_true,
-             global_y_pred)
+             global_y_pred,
+             test_dataset.class_names,
+             True)
