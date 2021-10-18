@@ -158,15 +158,15 @@ for index in range(10):
                               ".csv"),
                  y_true,
                  y_pred,
-                 test_dataset.class_names)
+                 test_dataset.class_names,
+                 True)
 
     cmp.cm_print(os.path.join(DIR_OUT,
                               MY_DATE + "_confusion_matrix_" + str(index) +
                               ".csv"),
                  y_true,
                  y_pred,
-                 test_dataset.class_names,
-                 True)
+                 test_dataset.class_names)
 
 
 results_acc = np.array(results_acc)
@@ -180,11 +180,11 @@ cmp.cm_print(os.path.join(DIR_OUT,
                           MY_DATE + "_nor_confusion_matrix_global.csv"),
              global_y_true,
              global_y_pred,
-             test_dataset.class_names)
+             test_dataset.class_names,
+             True)
 
 cmp.cm_print(os.path.join(DIR_OUT,
                           MY_DATE + "_confusion_matrix_global.csv"),
              global_y_true,
              global_y_pred,
-             test_dataset.class_names,
-             True)
+             test_dataset.class_names)
