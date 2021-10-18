@@ -39,7 +39,7 @@ for index in range(10):
     IMG_SIZE = (224, 224)
 
     # Create file contain all image's name used
-    my_file = open(os.path.join(DIR_OUT, MY_DATE + "dataset_" + str(index)),
+    my_file = open(os.path.join(DIR_OUT, MY_DATE + "_dataset_" + str(index)),
                    "w")
     writer = csv.writer(my_file)
     # Write header
@@ -75,20 +75,18 @@ for index in range(10):
     train_dataset = image_dataset_from_directory(train_dir,
                                                  shuffle=True,
                                                  batch_size=BATCH_SIZE,
-                                                 image_size=IMG_SIZE,
-                                                 label_mode='categorical')
+                                                 image_size=IMG_SIZE)
 
     validation_dataset = image_dataset_from_directory(validation_dir,
                                                       shuffle=True,
                                                       batch_size=BATCH_SIZE,
-                                                      image_size=IMG_SIZE,
-                                                      label_mode='categorical')
+                                                      image_size=IMG_SIZE)
 
     test_dataset = image_dataset_from_directory(test_dir,
                                                 shuffle=True,
                                                 batch_size=BATCH_SIZE,
-                                                image_size=IMG_SIZE,
-                                                label_mode='categorical')
+                                                image_size=IMG_SIZE)
+
     print('Number of validation batches: %d' % tf.data.experimental.cardinality(validation_dataset))
     print('Number of test batches: %d' % tf.data.experimental.cardinality(test_dataset))
 
@@ -142,9 +140,8 @@ for index in range(10):
     y_pred = []
     for img, label in test_dataset.unbatch():
         # Get label of image
-        pos = np.where(label>0)
-        y_true.append(test_dataset.class_names[pos[0][0]])
-        global_y_true.append(test_dataset.class_names[pos[0][0]])
+        y_true.append(test_dataset.class_names[label])
+        global_y_true.append(test_dataset.class_names[label])
 
         # Predict label of image
         pred = model.predict(img)
