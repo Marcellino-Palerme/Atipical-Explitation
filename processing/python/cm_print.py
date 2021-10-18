@@ -43,7 +43,7 @@ def cm_print(fname, y_true, y_pred, labels=None, normalize=False):
 
     """
     if normalize :
-        normalize = 'all'
+        normalize = 'true'
     else:
         normalize = None
 
