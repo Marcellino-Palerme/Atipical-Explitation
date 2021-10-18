@@ -6,14 +6,29 @@ Created on Mon Jul 19 15:58:25 2021
 @author: mpalerme
 """
 
-import numpy as np
+import sys
 import os
+import numpy as np
 import tensorflow as tf
-
-
 from tensorflow.keras.preprocessing import image_dataset_from_directory
+import cm_print as cmp
+import glob
+import csv
 
-results = []
+# Take date when have started script
+if len(sys.argv) != 2:
+    raise ValueError('Please provide date.')
+
+MY_DATE = sys.argv[1]
+DIR_OUT = os.path.join(os.path.dirname(__file__),
+                       "report",
+                       MY_DATE + "_tl_atipical_B4")
+
+# Save accurancy
+results_acc = []
+# Save true and predic labels
+global_y_true = []
+global_y_pred = []
 
 for index in range(10):
     PATH = "/home/genouest/inra_umr1349/mpalerme/dataset_atipical" + str(index)
@@ -23,20 +38,57 @@ for index in range(10):
     BATCH_SIZE = 32
     IMG_SIZE = (224, 224)
 
+    # Create file contain all image's name used
+    my_file = open(os.path.join(DIR_OUT, MY_DATE + "dataset_" + str(index)),
+                   "w")
+    writer = csv.writer(my_file)
+    # Write header
+    writer.writerow(["part", "filename"])
+    # Write name's part
+    writer.writerow(["train"])
+    # Write files of train part
+    writer.writerows([["", os.path.basename(path)]\
+                      for path in glob.glob(os.path.join(train_dir,
+                                                         "*",
+                                                         "*"))])
+
+    # Write name's part
+    writer.writerow(["validation"])
+    # Write files of validation part
+    writer.writerows([["", os.path.basename(path)]\
+                      for path in glob.glob(os.path.join(validation_dir,
+                                                         "*",
+                                                         "*"))])
+
+    # Write name's part
+    writer.writerow(["test"])
+    # Write files of test part
+    writer.writerows([["", os.path.basename(path)]\
+                      for path in glob.glob(os.path.join(test_dir,
+                                                         "*",
+                                                         "*"))])
+
+    # Close file
+    my_file.close()
+
+
     train_dataset = image_dataset_from_directory(train_dir,
                                                  shuffle=True,
                                                  batch_size=BATCH_SIZE,
-                                                 image_size=IMG_SIZE)
+                                                 image_size=IMG_SIZE,
+                                                 label_mode='categorical')
 
     validation_dataset = image_dataset_from_directory(validation_dir,
                                                       shuffle=True,
                                                       batch_size=BATCH_SIZE,
-                                                      image_size=IMG_SIZE)
+                                                      image_size=IMG_SIZE,
+                                                      label_mode='categorical')
 
     test_dataset = image_dataset_from_directory(test_dir,
                                                 shuffle=True,
                                                 batch_size=BATCH_SIZE,
-                                                image_size=IMG_SIZE)
+                                                image_size=IMG_SIZE,
+                                                label_mode='categorical')
     print('Number of validation batches: %d' % tf.data.experimental.cardinality(validation_dataset))
     print('Number of test batches: %d' % tf.data.experimental.cardinality(test_dataset))
 
@@ -52,7 +104,7 @@ for index in range(10):
 
     base_model.trainable = False
 
-    nb_classes = len(train_dataset.class_names) 
+    nb_classes = len(train_dataset.class_names)
     prediction_layer = tf.keras.layers.Dense(nb_classes)
 
 
@@ -84,14 +136,50 @@ for index in range(10):
 
     loss, accuracy = model.evaluate(test_dataset)
     print(accuracy)
-    results.append(accuracy)
+    results_acc.append(accuracy)
+
+    y_true = []
+    y_pred = []
+    for img, label in test_dataset.unbatch():
+        # Get label of image
+        pos = np.where(label>0)
+        y_true.append(test_dataset.class_names[pos[0][0]])
+        global_y_true.append(test_dataset.class_names[pos[0][0]])
+
+        # Predict label of image
+        pred = model.predict(img)
+
+        # Take the max of each predition
+        pred_max = np.amax(pred)
+        # Get label of prediction
+        pos = np.where(pred==pred_max)
+        y_pred.append(test_dataset.class_names[pos[0][0]])
+        global_y_pred.append(test_dataset.class_names[pos[0][0]])
+
+    cmp.cm_print(os.path.join(DIR_OUT,
+                              MY_DATE + "_nor_confusion_matrix_" + str(index)),
+                 y_true,
+                 y_pred)
+
+    cmp.cm_print(os.path.join(DIR_OUT,
+                              MY_DATE + "_confusion_matrix_" + str(index)),
+                 y_true,
+                 y_pred)
 
 
-results = np.array(results)
-print("moyenne : " + str(results.mean()))
-print("min : " + str(results.min()))
-print("max : " + str(results.max()))
-print("variance : " + str(results.var()))
-print("standard deviation  : " + str(results.std()))
+results_acc = np.array(results_acc)
+print("moyenne : " + str(results_acc.mean()))
+print("min : " + str(results_acc.min()))
+print("max : " + str(results_acc.max()))
+print("variance : " + str(results_acc.var()))
+print("standard deviation  : " + str(results_acc.std()))
+# Print global confusion matrix
+cmp.cm_print(os.path.join(DIR_OUT,
+                          MY_DATE + "_nor_confusion_matrix_global"),
+             global_y_true,
+             global_y_pred)
 
-
+cmp.cm_print(os.path.join(DIR_OUT,
+                          MY_DATE + "_confusion_matrix_global"),
+             global_y_true,
+             global_y_pred)
