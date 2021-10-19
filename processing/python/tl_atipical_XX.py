@@ -14,6 +14,7 @@ import re
 import numpy as np
 import tensorflow as tf
 import cm_print as cmp
+import json
 
 # Take date when have started script
 if len(sys.argv) != 3:
@@ -139,7 +140,7 @@ for index in range(10):
                   loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
                   metrics=['accuracy'])
 
-    log_dir = os.path.joint(DIR_OUT, MY_DATE + "_tensorboard_" + str(index))
+    log_dir = os.path.join(DIR_OUT, MY_DATE + "_tensorboard_" + str(index))
     tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir,
                                                           histogram_freq=1,
                                                           write_images=True,
@@ -156,6 +157,13 @@ for index in range(10):
     print(accuracy)
     results_acc.append(accuracy)
 
+    # Save history
+    HIST_FILE = os.path.join(DIR_OUT,
+                             MY_DATE + "_history_" + str(index) + ".json")
+    with open(HIST_FILE, 'w') as file:
+        json.dump(history.history, file)
+
+    # Create confusion matrix for test dataset
     y_true = []
     y_pred = []
     for img, label in test_dataset.unbatch():
@@ -173,6 +181,7 @@ for index in range(10):
         y_pred.append(test_dataset.class_names[pos[0][0]])
         global_y_pred.append(test_dataset.class_names[pos[0][0]])
 
+    # Save confusion matrix
     cmp.cm_print(os.path.join(DIR_OUT,
                               MY_DATE + "_nor_confusion_matrix_" + str(index) +
                               ".csv"),
