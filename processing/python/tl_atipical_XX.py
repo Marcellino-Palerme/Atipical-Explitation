@@ -139,10 +139,18 @@ for index in range(10):
                   loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
                   metrics=['accuracy'])
 
+    log_dir = os.path.joint(DIR_OUT, MY_DATE + "_tensorboard_" + str(index))
+    tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir,
+                                                          histogram_freq=1,
+                                                          write_images=True,
+                                                          profile_batch=1,
+                                                          embeddings_freq=1)
+
     history = model.fit(train_dataset,
                         epochs=30,
                         validation_data=validation_dataset,
-                        verbose=2)
+                        verbose=2,
+                        callbacks=[tensorboard_callback])
 
     loss, accuracy = model.evaluate(test_dataset)
     print(accuracy)
