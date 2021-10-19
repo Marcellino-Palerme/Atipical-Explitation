@@ -8,21 +8,22 @@ Created on Mon Jul 19 15:58:25 2021
 
 import sys
 import os
-import numpy as np
-import tensorflow as tf
-from tensorflow.keras.preprocessing import image_dataset_from_directory
-import cm_print as cmp
 import glob
 import csv
+import re
+import numpy as np
+import tensorflow as tf
+import cm_print as cmp
 
 # Take date when have started script
-if len(sys.argv) != 2:
-    raise ValueError('Please provide date.')
+if len(sys.argv) != 3:
+    raise ValueError('Please provide date and/or structure name.')
 
 MY_DATE = sys.argv[1]
+STRUC = sys.argv[2].upper()
 DIR_OUT = os.path.join(os.path.dirname(__file__),
                        "report",
-                       MY_DATE + "_tl_atipical_B4")
+                       MY_DATE + "_tl_atipical_" + STRUC)
 
 # Save accurancy
 results_acc = []
@@ -71,34 +72,45 @@ for index in range(10):
     # Close file
     my_file.close()
 
+    create_dataset = tf.keras.preprocessing.image_dataset_from_directory
 
-    train_dataset = image_dataset_from_directory(train_dir,
-                                                 shuffle=True,
-                                                 batch_size=BATCH_SIZE,
-                                                 image_size=IMG_SIZE)
+    train_dataset = create_dataset(train_dir,
+                                   shuffle=True,
+                                   batch_size=BATCH_SIZE,
+                                   image_size=IMG_SIZE)
 
-    validation_dataset = image_dataset_from_directory(validation_dir,
-                                                      shuffle=True,
-                                                      batch_size=BATCH_SIZE,
-                                                      image_size=IMG_SIZE)
+    validation_dataset = create_dataset(validation_dir,
+                                        shuffle=True,
+                                        batch_size=BATCH_SIZE,
+                                        image_size=IMG_SIZE)
 
-    test_dataset = image_dataset_from_directory(test_dir,
-                                                shuffle=True,
-                                                batch_size=BATCH_SIZE,
-                                                image_size=IMG_SIZE)
+    test_dataset = create_dataset(test_dir,
+                                  shuffle=True,
+                                  batch_size=BATCH_SIZE,
+                                  image_size=IMG_SIZE)
 
     print('Number of validation batches: %d' % tf.data.experimental.cardinality(validation_dataset))
     print('Number of test batches: %d' % tf.data.experimental.cardinality(test_dataset))
 
-    preprocess_input = tf.keras.applications.efficientnet.preprocess_input
+    # Select structure used
+    if re.match(r'^B.$', STRUC):
+        preprocess_input = tf.keras.applications.efficientnet.preprocess_input
+        application = getattr(tf.keras.applications, "EfficientNet" + STRUC)
 
-    rescale = tf.keras.layers.experimental.preprocessing.Rescaling(1./255)
+    if STRUC == "INCEPTV3":
+        preprocess_input = tf.keras.applications.inception_v3.preprocess_input
+        application = tf.keras.applications.InceptionV3
+
+    if STRUC == "VGG16":
+        preprocess_input = tf.keras.applications.vgg16.preprocess_input
+        application = tf.keras.applications.VGG16
+
 
     # Create the base model from the pre-trained model MobileNet V2
     IMG_SHAPE = IMG_SIZE + (3,)
-    base_model = tf.keras.applications.EfficientNetB4(input_shape=IMG_SHAPE,
-                                                      include_top=False,
-                                                      weights='imagenet')
+    base_model = application(input_shape=IMG_SHAPE,
+                             include_top=False,
+                             weights='imagenet')
 
     base_model.trainable = False
 
