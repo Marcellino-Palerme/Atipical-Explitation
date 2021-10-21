@@ -11,7 +11,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-from sklearn.model_selection import KFold
+from sklearn.model_selection import StratifiedShuffleSplit
 
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
@@ -21,6 +21,8 @@ from skimage import io
 
 import SimpleITK as sitk
 from radiomics.glrlm import RadiomicsGLRLM
+
+import json
 ## unit test is ok ###
 
 ## nb class == 4
@@ -82,12 +84,17 @@ def lrlm(in_im, in_mask):
 y=np.array([])
 X=[]
 u=1.0
+id_im = []
 for where in [Alt, Big, Mac, Mil, Myc, Pse, Syl]:
     ones=[]
     os.chdir(where)
     k=1.0
     for file in sorted(glob.glob("*ecto*.tiff")):
         print(k/len(glob.glob("*ecto*.tiff")))
+
+        # Take Id of image
+        id_im.append(file[0:8])
+
         image = mh.imread(file)
         ## NB : skimage to mahotas, careful with differences in type 'image'
         ############
@@ -271,7 +278,7 @@ Xb = np.nan_to_num(Xb)
 yb=y
 
 
-kf = KFold(len(yb))
+kf = StratifiedShuffleSplit(random_state=159)
 
 acc1=[]
 acc2=[]
@@ -282,10 +289,14 @@ preds2=[]
 trues2=[]
 preds3=[]
 trues3=[]
-for train, test in kf.split(Xb):
+the_dict = {}
+for index, my_split in enumerate(kf.split(Xb, yb)):
+    train = my_split[0]
+    test = my_split[1]
     print("Train : ", train)
     print('test : ', test)
     X_train, X_test, y_train, y_test = Xb[train], Xb[test], yb[train], yb[test]
+    id_train, id_test = id_im[train], id_im[test]
     clf1 = LinearDiscriminantAnalysis(solver='lsqr', shrinkage='auto').fit(X_train, y_train)
     clf2 = LinearDiscriminantAnalysis(solver='lsqr', shrinkage=None).fit(X_train, y_train)
     clf3 = QuadraticDiscriminantAnalysis().fit(X_train, y_train)
@@ -298,6 +309,13 @@ for train, test in kf.split(Xb):
     trues2.append(y_test)
     preds3.append(clf3.predict(X_test))
     trues3.append(y_test)
+    the_dict["l_auto_acc_" + str(index)] = clf1.score(X_test,y_test)
+    the_dict["l_none_acc_" + str(index)] = clf2.score(X_test,y_test)
+    the_dict["quadra_acc_" + str(index)] = clf3.score(X_test,y_test)
+    the_dict["l_auto_pred_" + str(index)] = clf1.predict(X_test)
+    the_dict["l_none_pred_" + str(index)] = clf2.predict(X_test)
+    the_dict["quadra_pred_" + str(index)] = clf3.predict(X_test)
+    the_dict["true_" + str(index)] = y_test
 
 
 def plot_confusion_matrix(cm, title='Confusion matrix', cmap=plt.cm.Blues):
@@ -332,14 +350,19 @@ def cal_visu_conf(preds, trues):
 print("LINEAR Auto")
 print("Acc = " + str(np.array(acc1).mean()))
 print("Kappa = " + str(cohen_kappa_score(preds1, trues1)))
-cal_visu_conf(preds1, trues1)
+#cal_visu_conf(preds1, trues1)
 
 print("LINEAR")
 print("Acc = " + str(np.array(acc2).mean()))
 print("Kappa = " + str(cohen_kappa_score(preds2, trues2)))
-cal_visu_conf(preds2, trues2)
+#cal_visu_conf(preds2, trues2)
 
 print("QUADRATIC")
 print("Acc = " + str(np.array(acc3).mean()))
 print("Kappa = " + str(cohen_kappa_score(preds3, trues3)))
-cal_visu_conf(preds3, trues3)
+#cal_visu_conf(preds3, trues3)
+
+# Save dictionary
+DICT_FILE = "pred_true.json"
+with open(DICT_FILE, 'w') as file:
+    json.dump(the_dict, file)
