@@ -9,21 +9,22 @@ from os.path import join
 from PIL import Image
 from os import listdir, makedirs, rmdir, remove
 from os.path import isfile, join, exists, splitext
+import json
+import sys
+import os
+import re
 
-def file_list(directory):
-    """!@brief
-        give list of files in a directory
 
-        @param directory (str)
-            directory where search files
+# Take date when have started script
+if len(sys.argv) != 3:
+    raise ValueError('Please provide date and/or structure name.')
 
-        @return (list)
-            list of files
-    """
-    onlyfiles = [f for f in listdir(directory)]
-    onlyfiles.sort()
+MY_DATE = sys.argv[1]
+STRUC = sys.argv[2].upper()
+DIR_OUT = os.path.join(os.path.dirname(__file__),
+                       "report",
+                       MY_DATE + "_tl_atipical_" + STRUC)
 
-    return onlyfiles
 
 # Define size of image
 img_height = 224
@@ -87,6 +88,22 @@ valid_photos_recto = np.array(valid_photos_recto)
 valid_photos_verso = np.array(valid_photos_verso)
 valid_labels = np.array(valid_labels)
 print(train_photos_recto)
+
+
+# Select structure used
+if re.match(r'^B.$', STRUC):
+    preprocess_input = tf.keras.applications.efficientnet.preprocess_input
+    application = getattr(tf.keras.applications, "EfficientNet" + STRUC)
+
+if STRUC == "INCEPTV3":
+    preprocess_input = tf.keras.applications.inception_v3.preprocess_input
+    application = tf.keras.applications.InceptionV3
+
+if STRUC == "VGG16":
+    preprocess_input = tf.keras.applications.vgg16.preprocess_input
+    application = tf.keras.applications.VGG16
+
+
 # Define the process for augmentation data
 data_augmentation_r = tf.keras.Sequential([
      tf.keras.Input((img_height, img_width, 3)),
@@ -101,12 +118,12 @@ data_augmentation_v = tf.keras.Sequential([
      tf.keras.layers.experimental.preprocessing.RandomRotation(0.2)])
 
 # Init the VGG model
-vgg_conv_r = tf.keras.applications.EfficientNetB4(weights='imagenet', include_top=False,
-                                                  input_shape=(img_height, img_width, 3))
+vgg_conv_r = application(weights='imagenet', include_top=False,
+                         input_shape=(img_height, img_width, 3))
 vgg_conv_r._name = "vgg16_r"
 
-vgg_conv_v = tf.keras.applications.EfficientNetB4(weights='imagenet', include_top=False,
-                                                  input_shape=(img_height, img_width, 3))
+vgg_conv_v = application(weights='imagenet', include_top=False,
+                         input_shape=(img_height, img_width, 3))
 vgg_conv_v._name = "vgg16_v"
 
 
@@ -119,7 +136,8 @@ for layer in vgg_conv_r.layers[:]:
 
 # Define the network
 # create parallel models
-model_verso = data_augmentation_v.output
+inputs = tf.keras.Input(shape=(img_height, img_width, 3))
+model_verso = preprocess_input(inputs)
 model_verso = vgg_conv_v(model_verso)
 # Rebuild top
 model_verso = tf.keras.layers.GlobalAveragePooling2D(name="avg_pool")(model_verso)
@@ -128,8 +146,8 @@ model_verso = tf.keras.layers.BatchNormalization()(model_verso)
 top_dropout_rate = 0.2
 model_verso = tf.keras.layers.Dropout(top_dropout_rate, name="top_dropout")(model_verso)
 
-model_recto = data_augmentation_r.output
-model_recto = vgg_conv_r(model_recto)
+inputs = tf.keras.Input(shape=(img_height, img_width, 3))
+model_recto = preprocess_input(inputs)
 model_recto = tf.keras.layers.GlobalAveragePooling2D(name="avg_pool_recto")(model_recto)
 model_recto = tf.keras.layers.BatchNormalization()(model_recto)
 
@@ -164,16 +182,21 @@ print(model.summary())
 global logs
 
 # Training the network
-model.fit(
-  x= [train_photos_recto, train_photos_verso], y=train_labels,
-  validation_data = ([valid_photos_recto, valid_photos_verso], valid_labels),
-  epochs=30,
-  verbose=2,
-  batch_size=1
-)
+history = model.fit(
+                    x= [train_photos_recto, train_photos_verso], y=train_labels,
+                    validation_data = ([valid_photos_recto, valid_photos_verso], valid_labels),
+                    epochs=30,
+                    verbose=2,
+                    batch_size=1
+                    )
 """
 # Save the network
 model.save("/home/genouest/inra_umr1349/mpalerme/model_multi_view_last.hd5")
 """
 print(model.evaluate([test_photos_recto, test_photos_verso]))
+
+# Save history
+HIST_FILE = os.path.join(DIR_OUT, MY_DATE + "_history.json")
+with open(HIST_FILE, 'w') as file:
+    json.dump(history.history, file)
 
