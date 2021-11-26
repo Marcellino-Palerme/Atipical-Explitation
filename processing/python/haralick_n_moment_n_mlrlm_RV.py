@@ -4,7 +4,7 @@
 '''
    Warning: I work with images containing a black background
 '''
-
+import argparse
 import mahotas as mh
 import glob, os
 import numpy as np
@@ -15,6 +15,8 @@ from sklearn.model_selection import StratifiedShuffleSplit
 
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
+from sklearn.svm import SVC
+from sklearn.tree import DecisionTreeClassifier
 from sklearn.metrics import confusion_matrix, cohen_kappa_score
 from skimage import io
 
@@ -23,15 +25,16 @@ import SimpleITK as sitk
 from radiomics.glrlm import RadiomicsGLRLM
 
 import json
-## unit test is ok ###
 
-## nb class == 4
-## Alternaria , Mycosphaerella, Pseudocercosporella, Sans_Symptomes
-## not L_maculans
-
-## extract haralick features ##
-
-## 'copy-pasta'
+##############################################################################
+### Constants
+##############################################################################
+LT_CLASS = ["Alt", "Big", "Mac", "Mil", "Myc", "Pse", "Syl"]
+RECTO = "recto"
+VERSO = "verso"
+TRAIN = "train"
+TEST = "test"
+SYMPTOM = 'symptom'
 
 Alt = '/home/port-mpalerme/Documents/Atipical/Traitement/photos/Alt_bdb_cut2_max'
 Big = '/home/port-mpalerme/Documents/Atipical/Traitement/photos/Big_bdb_cut2_max'
@@ -40,6 +43,93 @@ Mil = '/home/port-mpalerme/Documents/Atipical/Traitement/photos/Mil_bdb_cut2_max
 Myc = '/home/port-mpalerme/Documents/Atipical/Traitement/photos/Myc_bdb_cut2_max'
 Pse = '/home/port-mpalerme/Documents/Atipical/Traitement/photos/Pse_bdb_cut2_max'
 Syl = '/home/port-mpalerme/Documents/Atipical/Traitement/photos/Syl_bdb_cut2_max'
+
+
+###############################################################################
+### Manage arguments input
+###############################################################################
+def arguments ():
+    """
+    manage input arguments
+
+    Returns
+    -------
+    namespace
+
+    """
+    parser = argparse.ArgumentParser()
+
+    # Add argument for source directory
+    parser.add_argument('-i', '--dir_in', type=str, help="source directory",
+                        required=True, dest='dir_in')
+
+    # Add argument for output directory
+    parser.add_argument('-o', '--dir_out', type=str, help="output directory",
+                        required=True, dest='dir_out')
+
+    # Take all arguments
+    return parser.parse_args()
+
+
+##############################################################################
+### Additional function
+##############################################################################
+def create_dataset (dir_in, rectoverso):
+    """
+    From directory recreate dataset's list
+
+    Parameters
+    ----------
+    dir_in : str
+        input directory where there are splits with images.
+
+    rectoverso : bool
+        work with verso.
+
+    Returns
+    -------
+    list of dictonary.
+
+    """
+    # Create list of dataset
+    lt_dataset = []
+
+    # Take all split
+    lt_split = os.listdir(dir_in)
+
+    for split in lt_split:
+        # Add a dataset
+        lt_dataset.append({})
+        for part in [TRAIN, TEST]:
+            # Add dataset's part
+            lt_dataset[int(split)][part] = {RECTO:[], SYMPTOM:[]}
+            if rectoverso:
+                # Add verso
+                lt_dataset[int(split)][part][VERSO] = []
+
+            for index_sympt, symptom in enumerate(LT_CLASS):
+                # Take path of all recto images of this symptom
+                lt_images = sorted(glob.glob(os.path.join(dir_in, split, part,
+                                                          symptom, RECTO)))
+
+                # Add images in dataset
+                lt_dataset[int(split)][part][RECTO] += lt_images
+
+                if rectoverso:
+                    # Take path of all verso images of this symptom
+                    lt_images = sorted(glob.glob(os.path.join(dir_in, split,
+                                                              part, symptom,
+                                                              VERSO)))
+
+                    # Add images in dataset
+                    lt_dataset[int(split)][part][VERSO] += lt_images
+
+                # Add index of symptom
+                lt_dataset[int(split)][part][SYMPTOM] += list(np.ones(len(lt_images),
+                                                                      np.int8) *
+                                                              index_sympt)
+
+    return lt_dataset
 
 
 def lrlm(in_im, in_mask):
@@ -80,6 +170,109 @@ def lrlm(in_im, in_mask):
             glrlm.getLongRunLowGrayLevelEmphasisFeatureValue()[0],
             glrlm.getLongRunHighGrayLevelEmphasisFeatureValue()[0]
            ]
+
+
+def extract_features(path_im):
+    """
+    extract all feature of image
+
+    Parameters
+    ----------
+    path_im : str
+        path of image.
+
+    Returns
+    -------
+    list of features.
+
+    """
+
+    # Read image
+    image = mh.imread(file)
+
+    # Extract RGB channels
+    rR=image[:,:,0] # r
+    gR=image[:,:,1] # g
+    bR=image[:,:,2] # b
+
+    # inialize feature's lists
+    res1 = np.zeros((13,))
+    res2 = np.zeros((13,))
+    res3 = np.zeros((13,))
+    a_glrlm = np.zeros((16,))
+    a_rlrlm = np.zeros((16,))
+    a_vlrlm = np.zeros((16,))
+    a_blrlm = np.zeros((16,))
+    # Not use background for moments
+    im_gray = io.imread(file, True, 'matplotlib')
+    if len(np.nonzero(im_gray)[0]) > 0:
+        try:
+            res1=mh.features.haralick(rR,ignore_zeros=True,return_mean=True)
+        except ValueError:
+            pass
+        try:
+            res2=mh.features.haralick(gR,ignore_zeros=True,return_mean=True)
+        except ValueError:
+            pass
+        try:
+            res3=mh.features.haralick(bR,ignore_zeros=True,return_mean=True)
+        except ValueError:
+            pass
+
+        # Create mask
+        mask = im_gray.copy()
+        mask[mask > 0] = 1
+
+        # Calculate Gray Level Run Length Matrix (GLRLM) Features
+        a_glrlm = lrlm(im_gray, mask)
+        a_rlrlm = lrlm(rR, mask)
+        a_vlrlm = lrlm(gR, mask)
+        a_blrlm = lrlm(bR, mask)
+
+        rR = rR[np.nonzero(im_gray)]
+        gR = gR[np.nonzero(im_gray)]
+        bR = bR[np.nonzero(im_gray)]
+
+    # define moment mean, standar deviation, variance, min, max
+    momt_R = [np.mean(rR), np.std(rR), np.var(rR), np.min(rR), np.max(rR)]
+    momt_G = [np.mean(gR), np.std(gR), np.var(gR), np.min(gR), np.max(gR)]
+    momt_B = [np.mean(bR), np.std(bR), np.var(bR), np.min(bR), np.max(bR)]
+
+    return np.concatenate((res1, res2, res3, momt_R, momt_G, momt_B,
+                           a_glrlm, a_rlrlm, a_vlrlm, a_blrlm))
+
+
+def features_dataset(dataset, rectoverso):
+    """
+
+
+    Parameters
+    ----------
+    dataset : dictionnary
+        dataset for a split.
+
+    rectoverso : bool
+        work with verso.
+
+    Returns
+    -------
+    list of array.
+
+    """
+    lt_features = []
+    for index in range(len(dataset[RECTO])):
+        features = extract_features(dataset[RECTO][index])
+
+        # if woks with verso
+        if rectoverso:
+            features_verso = extract_features(dataset[VERSO][index])
+
+            # concatenate features of image
+            features = np.concatenate((features, features_verso))
+
+        lt_features.append(features)
+
+    return lt_features
 
 y=np.array([])
 X=[]
@@ -300,6 +493,7 @@ for index, my_split in enumerate(kf.split(Xb, yb)):
     clf1 = LinearDiscriminantAnalysis(solver='lsqr', shrinkage='auto').fit(X_train, y_train)
     clf2 = LinearDiscriminantAnalysis(solver='lsqr', shrinkage=None).fit(X_train, y_train)
     clf3 = QuadraticDiscriminantAnalysis().fit(X_train, y_train)
+    cl_svc = SVC()
     acc1.append(clf1.score(X_test,y_test))
     acc2.append(clf2.score(X_test,y_test))
     acc3.append(clf3.score(X_test,y_test))
@@ -366,3 +560,29 @@ print("Kappa = " + str(cohen_kappa_score(preds3, trues3)))
 DICT_FILE = "pred_true.json"
 with open(DICT_FILE, 'w') as file:
     json.dump(the_dict, file)
+
+def run():
+    """
+
+
+    Returns
+    -------
+    None.
+
+    """
+    # Take input arguments
+    args =  arguments()
+
+    # Take absolu path of input directory
+    abs_dir_in = os.path.abspath(os.path.expanduser(args.dir_in))
+
+    # Take dataset
+    lt_dataset = create_dataset(abs_dir_in, args.rv)
+
+    # scan dataset
+    for dataset in lt_dataset:
+        lt_features = features_dataset(dataset, args.rv)
+
+
+if __name__=='__main__':
+    run()

@@ -94,7 +94,9 @@ class NumberSplitAction(argparse.Action):
 
         setattr(namespace, self.dest, values)
 
-
+##############################################################################
+### Main function
+##############################################################################
 def run():
     """
     just run script
@@ -124,17 +126,14 @@ def run():
     # Add argument indicate number of split
     parser.add_argument("-s", "--number_split", type=int,
                         help="Number of split",
-                        default=10, dest='nb_split', action=NumberSplitAction)
+                        default=5, dest='nb_split', action=NumberSplitAction)
 
-    # Add argument percentage of training
-    parser.add_argument('-%', '--percent_train', type=float, dest='train_size',
-                        help="percentage of training", default=0.8,
-                        action=PercentTrainAction)
 
     # Take all arguments
     args = parser.parse_args()
 
-    abs_output = op.abspath(args.dir_out)
+    abs_input = op.abspath(op.expanduser(args.dir_in))
+    abs_output = op.abspath(op.expanduser(args.dir_out))
 
     # Create output directory
     create_directory_split(abs_output, args.nb_split, args.rv)
@@ -153,8 +152,8 @@ def run():
 
     for index, symptom in enumerate(LT_CLASS):
         # Take all recto image name
-        lt_name = sorted(glob.glob(op.join(op.abspath(args.dir_in), symptom,
-                                           "*ecto*."), recursive=True))
+        lt_name = sorted(glob.glob(op.join(abs_input, symptom, "*ecto*.*"),
+                                   recursive=True))
 
         # Add recto to dataset
         d_dataset[RECTO] = d_dataset[RECTO] + lt_name
@@ -162,16 +161,15 @@ def run():
         # Work with verso
         if args.rv:
             # Take all verso image name
-            lt_name = sorted(glob.glob(op.join(op.abspath(args.dir_in),
-                                               symptom,
-                                               "*erso*."), recursive=True))
+            lt_name = sorted(glob.glob(op.join(abs_input, symptom, "*erso*.*"),
+                                       recursive=True))
 
             # Add verso to dataset
             d_dataset[VERSO] = d_dataset[VERSO] + lt_name
 
         # indicate the symptom index
         d_dataset["symptom"] = d_dataset["symptom"] +\
-                               list(np.ones(len(lt_name)) * index)
+                               list(np.ones(len(lt_name), np.int8) * index)
 
 
     ###########################################################################
@@ -179,36 +177,50 @@ def run():
     ###########################################################################
 
     # Define number of split
-    skf = StratifiedKFold(n_splits=args.nb_split)
+    skf = StratifiedKFold(n_splits=args.nb_split, shuffle=True)
 
     for index_split, train_test_index in enumerate(skf.split(d_dataset[RECTO],
                                                              d_dataset['symptom'])
                                                    ):
+        index_split = str(index_split)
 
         for index in train_test_index[0]:
+            # Take symptom name
             symptom = LT_CLASS[d_dataset["symptom"][index]]
+            # Take image name
+            image_name = op.basename(d_dataset[RECTO][index])
             # Create symbolic link in train part of output directory
             symlink(d_dataset[RECTO][index], op.join(abs_output,index_split,
-                                                     TRAIN, symptom, RECTO))
+                                                     TRAIN, symptom, RECTO,
+                                                     image_name))
             # if work with verso
             if args.rv:
+                # Take image name
+                image_name = op.basename(d_dataset[VERSO][index])
                 # Create symbolic link in train part of output directory
-                symlink(d_dataset[RECTO][index], op.join(abs_output,
+                symlink(d_dataset[VERSO][index], op.join(abs_output,
                                                          index_split,
                                                          TRAIN, symptom,
-                                                         VERSO))
+                                                         VERSO, image_name))
 
         for index in train_test_index[1]:
+            # Take symptom name
             symptom = LT_CLASS[d_dataset["symptom"][index]]
+            # Take image name
+            image_name = op.basename(d_dataset[RECTO][index])
             # Create symbolic link in train part of output directory
             symlink(d_dataset[RECTO][index], op.join(abs_output,index_split,
-                                                     TEST, symptom, RECTO))
+                                                     TEST, symptom, RECTO,
+                                                     image_name))
             # if work with verso
             if args.rv:
+                # Take image name
+                image_name = op.basename(d_dataset[VERSO][index])
                 # Create symbolic link in train part of output directory
-                symlink(d_dataset[RECTO][index], op.join(abs_output,
+                symlink(d_dataset[VERSO][index], op.join(abs_output,
                                                          index_split,
-                                                         TEST, symptom, VERSO))
+                                                         TEST, symptom, VERSO,
+                                                         image_name))
 
 if __name__=='__main__':
     run()
