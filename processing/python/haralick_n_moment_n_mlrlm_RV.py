@@ -8,23 +8,17 @@ import argparse
 import mahotas as mh
 import glob, os
 import numpy as np
-import matplotlib.pyplot as plt
-
-
-from sklearn.model_selection import StratifiedShuffleSplit
-
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
 from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier
-from sklearn.metrics import confusion_matrix, cohen_kappa_score
 from skimage import io
-
-
 import SimpleITK as sitk
 from radiomics.glrlm import RadiomicsGLRLM
-
-import json
+import multiprocessing as mp
+import copy
+import pickle
+import tools_file as tsf
 
 ##############################################################################
 ### Constants
@@ -36,13 +30,13 @@ TRAIN = "train"
 TEST = "test"
 SYMPTOM = 'symptom'
 
-Alt = '/home/port-mpalerme/Documents/Atipical/Traitement/photos/Alt_bdb_cut2_max'
-Big = '/home/port-mpalerme/Documents/Atipical/Traitement/photos/Big_bdb_cut2_max'
-Mac = '/home/port-mpalerme/Documents/Atipical/Traitement/photos/Mac_bdb_cut2_max'
-Mil = '/home/port-mpalerme/Documents/Atipical/Traitement/photos/Mil_bdb_cut2_max'
-Myc = '/home/port-mpalerme/Documents/Atipical/Traitement/photos/Myc_bdb_cut2_max'
-Pse = '/home/port-mpalerme/Documents/Atipical/Traitement/photos/Pse_bdb_cut2_max'
-Syl = '/home/port-mpalerme/Documents/Atipical/Traitement/photos/Syl_bdb_cut2_max'
+# Alt = '/home/port-mpalerme/Documents/Atipical/Traitement/photos/Alt_bdb_cut2_max'
+# Big = '/home/port-mpalerme/Documents/Atipical/Traitement/photos/Big_bdb_cut2_max'
+# Mac = '/home/port-mpalerme/Documents/Atipical/Traitement/photos/Mac_bdb_cut2_max'
+# Mil = '/home/port-mpalerme/Documents/Atipical/Traitement/photos/Mil_bdb_cut2_max'
+# Myc = '/home/port-mpalerme/Documents/Atipical/Traitement/photos/Myc_bdb_cut2_max'
+# Pse = '/home/port-mpalerme/Documents/Atipical/Traitement/photos/Pse_bdb_cut2_max'
+# Syl = '/home/port-mpalerme/Documents/Atipical/Traitement/photos/Syl_bdb_cut2_max'
 
 
 ###############################################################################
@@ -66,6 +60,10 @@ def arguments ():
     # Add argument for output directory
     parser.add_argument('-o', '--dir_out', type=str, help="output directory",
                         required=True, dest='dir_out')
+
+    # Add argument to choose Recto or Recto/Verso
+    parser.add_argument('--rv', action='store_true', help="Recto/Verso",
+                        dest='rv')
 
     # Take all arguments
     return parser.parse_args()
@@ -95,7 +93,7 @@ def create_dataset (dir_in, rectoverso):
     lt_dataset = []
 
     # Take all split
-    lt_split = os.listdir(dir_in)
+    lt_split = sorted(os.listdir(dir_in))
 
     for split in lt_split:
         # Add a dataset
@@ -110,7 +108,8 @@ def create_dataset (dir_in, rectoverso):
             for index_sympt, symptom in enumerate(LT_CLASS):
                 # Take path of all recto images of this symptom
                 lt_images = sorted(glob.glob(os.path.join(dir_in, split, part,
-                                                          symptom, RECTO)))
+                                                          symptom, RECTO,
+                                                          '*ecto*.*')))
 
                 # Add images in dataset
                 lt_dataset[int(split)][part][RECTO] += lt_images
@@ -119,7 +118,8 @@ def create_dataset (dir_in, rectoverso):
                     # Take path of all verso images of this symptom
                     lt_images = sorted(glob.glob(os.path.join(dir_in, split,
                                                               part, symptom,
-                                                              VERSO)))
+                                                              VERSO,
+                                                              '*erso*.*')))
 
                     # Add images in dataset
                     lt_dataset[int(split)][part][VERSO] += lt_images
@@ -188,7 +188,7 @@ def extract_features(path_im):
     """
 
     # Read image
-    image = mh.imread(file)
+    image = mh.imread(path_im)
 
     # Extract RGB channels
     rR=image[:,:,0] # r
@@ -204,7 +204,7 @@ def extract_features(path_im):
     a_vlrlm = np.zeros((16,))
     a_blrlm = np.zeros((16,))
     # Not use background for moments
-    im_gray = io.imread(file, True, 'matplotlib')
+    im_gray = io.imread(path_im, True, 'matplotlib')
     if len(np.nonzero(im_gray)[0]) > 0:
         try:
             res1=mh.features.haralick(rR,ignore_zeros=True,return_mean=True)
@@ -242,14 +242,48 @@ def extract_features(path_im):
                            a_glrlm, a_rlrlm, a_vlrlm, a_blrlm))
 
 
-def features_dataset(dataset, rectoverso):
+def part_features_dataset(dataset, part, rectoverso):
     """
 
 
     Parameters
     ----------
-    dataset : dictionnary
-        dataset for a split.
+    dataset : TYPE
+        DESCRIPTION.
+    part : TYPE
+        DESCRIPTION.
+    rectoverso : TYPE
+        DESCRIPTION.
+
+    Returns
+    -------
+    None.
+
+    """
+    lt_features = []
+    for index in range(len(dataset[part][RECTO])):
+        features = extract_features(dataset[part][RECTO][index])
+
+        # if woks with verso
+        if rectoverso:
+            features_verso = extract_features(dataset[part][VERSO][index])
+
+            # concatenate features of image
+            features = np.concatenate((features, features_verso))
+
+        lt_features.append(features)
+
+    return lt_features
+
+
+def features_dataset(lt_dataset, rectoverso):
+    """
+
+
+    Parameters
+    ----------
+    lt_dataset : list of dictionnary
+        list of dataset for a split.
 
     rectoverso : bool
         work with verso.
@@ -259,307 +293,71 @@ def features_dataset(dataset, rectoverso):
     list of array.
 
     """
+    ###########################################################################
+    ### Extract features of all images
+    ###########################################################################
+    feat_image = {}
+    for part in [TRAIN,TEST]:
+        # Take list name
+        lt_name = [os.path.basename(name)[0:8]\
+                   for name in lt_dataset[0][part][RECTO]]
+
+        # Extract feature of all images
+        lt_features = part_features_dataset(lt_dataset[0], part, rectoverso)
+        # Link image name and it features
+        feat_image.update({os.path.basename(name):features\
+                           for name, features in zip(lt_name, lt_features)})
+
+    ###########################################################################
+    ### Create dataset with only features of each image
+    ###########################################################################
     lt_features = []
-    for index in range(len(dataset[RECTO])):
-        features = extract_features(dataset[RECTO][index])
-
-        # if woks with verso
-        if rectoverso:
-            features_verso = extract_features(dataset[VERSO][index])
-
-            # concatenate features of image
-            features = np.concatenate((features, features_verso))
-
-        lt_features.append(features)
+    for dataset in lt_dataset:
+        train = [feat_image[os.path.basename(name)[0:8]]\
+                 for name in dataset[TRAIN][RECTO]]
+        test = [feat_image[os.path.basename(name)[0:8]]\
+                for name in dataset[TEST][RECTO]]
+        lt_features.append({TRAIN:train, TEST:test})
 
     return lt_features
 
-y=np.array([])
-X=[]
-u=1.0
-id_im = []
-for where in [Alt, Big, Mac, Mil, Myc, Pse, Syl]:
-    ones=[]
-    os.chdir(where)
-    k=1.0
-    for file in sorted(glob.glob("*ecto*.tiff")):
-        print(k/len(glob.glob("*ecto*.tiff")))
 
-        # Take Id of image
-        id_im.append(file[0:8])
-
-        image = mh.imread(file)
-        ## NB : skimage to mahotas, careful with differences in type 'image'
-        ############
-        ## test of features from hsv instead of rgb  ###
-        ############
-        # image=skimage.color.rgb2hsv(image)
-        # r=(image[:,:,0]*255).astype(int) #  h
-        # g=(image[:,:,1]*255).astype(int) #  s
-        # b=(image[:,:,2]*255).astype(int) #  v
-        rR=image[:,:,0] # r
-        gR=image[:,:,1] # g
-        bR=image[:,:,2] # b
-        #rR=np.where(r==255, 0, r)
-        #gR=np.where(g==255, 0, g)
-        #bR=np.where(b==255, 0, b)
-        ############
-        ## test of other features in addition to haralick ###
-        ############
-        # imgG = mh.colors.rgb2grey(image)
-        # imgGi = imgG.astype(int)
-        # imgGiR=np.where(imgGi==255, 0, imgGi)
-        # res1=mh.features.haralick(imgGiR,ignore_zeros=True,return_mean=True)
-        # res2=mh.features.zernike_moments(imgGiR,radius=1000)
-        # res=np.concatenate((res1,res2))
-        res1 = np.zeros((13,))
-        res2 = np.zeros((13,))
-        res3 = np.zeros((13,))
-        a_glrlm = np.zeros((16,))
-        a_rlrlm = np.zeros((16,))
-        a_vlrlm = np.zeros((16,))
-        a_blrlm = np.zeros((16,))
-        # Not use background for moments
-        im_gray = io.imread(file, True, 'matplotlib')
-        if len(np.nonzero(im_gray)[0]) > 0:
-            try:
-                res1=mh.features.haralick(rR,ignore_zeros=True,return_mean=True)
-            except ValueError:
-                pass
-            try:
-                res2=mh.features.haralick(gR,ignore_zeros=True,return_mean=True)
-            except ValueError:
-                pass
-            try:
-                res3=mh.features.haralick(bR,ignore_zeros=True,return_mean=True)
-            except ValueError:
-                pass
-
-            # Create mask
-            mask = im_gray.copy()
-            mask[mask > 0] = 1
-
-            # Calculate Gray Level Run Length Matrix (GLRLM) Features
-            a_glrlm = lrlm(im_gray, mask)
-            a_rlrlm = lrlm(rR, mask)
-            a_vlrlm = lrlm(gR, mask)
-            a_blrlm = lrlm(bR, mask)
-
-            rR = rR[np.nonzero(im_gray)]
-            gR = gR[np.nonzero(im_gray)]
-            bR = bR[np.nonzero(im_gray)]
-
-        # define moment mean, standar deviation, variance, min, max
-        momt_R = [np.mean(rR), np.std(rR), np.var(rR), np.min(rR), np.max(rR)]
-        momt_G = [np.mean(gR), np.std(gR), np.var(gR), np.min(gR), np.max(gR)]
-        momt_B = [np.mean(bR), np.std(bR), np.var(bR), np.min(bR), np.max(bR)]
-        res=np.concatenate((res1, res2, res3,
-                            momt_R, momt_G, momt_B,
-                            a_glrlm, a_rlrlm, a_vlrlm, a_blrlm))
-        # res=np.concatenate((momt_R, momt_G, momt_B))
-        ones.append(res)
-        k=k+1.0
-    print("Done "+where)
-    y=np.concatenate([y,np.zeros(len(glob.glob("*ecto*.tiff")))+u])
-    ones=np.stack(ones)
-    X.append(ones)
-    u=u+1.0
-
-Xrecto=X
-yrecto=y
-
-y=np.array([])
-X=[]
-u=1.0
-for where in [Alt, Big, Mac, Mil, Myc, Pse, Syl]:
-    ones=[]
-    os.chdir(where)
-    k=1.0
-    for file in sorted(glob.glob("*erso*.tiff")):
-        print(k/len(glob.glob("*erso*.tiff")))
-        image = mh.imread(file)
-        rR=image[:,:,0] # r
-        gR=image[:,:,1] # g
-        bR=image[:,:,2] # b
-        #rR=np.where(r==255, 0, r)
-        #gR=np.where(g==255, 0, g)
-        #bR=np.where(b==255, 0, b)
-
-        res1 = np.zeros((13,))
-        res2 = np.zeros((13,))
-        res3 = np.zeros((13,))
-        a_glrlm = np.zeros((16,))
-        a_rlrlm = np.zeros((16,))
-        a_vlrlm = np.zeros((16,))
-        a_blrlm = np.zeros((16,))
-        # Not use background for moments
-        im_gray = io.imread(file, True, 'matplotlib')
-        if len(np.nonzero(im_gray)[0]) > 0:
-            try:
-                res1=mh.features.haralick(rR,ignore_zeros=True,return_mean=True)
-            except ValueError:
-                pass
-            try:
-                res2=mh.features.haralick(gR,ignore_zeros=True,return_mean=True)
-            except ValueError:
-                pass
-            try:
-                res3=mh.features.haralick(bR,ignore_zeros=True,return_mean=True)
-            except ValueError:
-                pass
-
-            # Create mask
-            mask = im_gray.copy()
-            mask[mask > 0] = 1
-
-           # Calculate Gray Level Run Length Matrix (GLRLM) Features
-            a_glrlm = lrlm(im_gray, mask)
-            a_rlrlm = lrlm(rR, mask)
-            a_vlrlm = lrlm(gR, mask)
-            a_blrlm = lrlm(bR, mask)
-
-            rR = rR[np.nonzero(im_gray)]
-            gR = gR[np.nonzero(im_gray)]
-            bR = bR[np.nonzero(im_gray)]
-        # define moment mean, standar deviation, variance, min, max
-        momt_R = [np.mean(rR), np.std(rR), np.var(rR), np.min(rR), np.max(rR)]
-        momt_G = [np.mean(gR), np.std(gR), np.var(gR), np.min(gR), np.max(gR)]
-        momt_B = [np.mean(bR), np.std(bR), np.var(bR), np.min(bR), np.max(bR)]
-        res=np.concatenate((res1, res2, res3,
-                            momt_R, momt_G, momt_B,
-                            a_glrlm, a_rlrlm, a_vlrlm, a_blrlm))
-        # res=np.concatenate((momt_R, momt_G, momt_B))
-        ones.append(res)
-        k=k+1.0
-    print("Done "+where)
-    y=np.concatenate([y,np.zeros(len(glob.glob("*erso*.tiff")))+u])
-    ones=np.stack(ones)
-    X.append(ones)
-    u=u+1.0
-
-Xverso=X
-yverso=y
-
-Xr=np.vstack(Xrecto)
-Xv=np.vstack(Xverso)
+def all_fit(classifier, lt_features, lt_dataset):
+    """
 
 
-### Alternaria :  56
-### Myco :  84
-### dernier : 106 (erreur en 149/2)
-### 214
+    Parameters
+    ----------
+    classifier : TYPE
+        DESCRIPTION.
+    lt_features : TYPE
+        DESCRIPTION.
+    lt_dataset : TYPE
+        DESCRIPTION.
 
-## Careful : 1 image add a Recto but no Verso (?!)
+    Returns
+    -------
+    None.
 
-#idx=list(range(214))+list(range(215,270))
-#Xrb=Xr[idx]
-Xrb=Xr
+    """
+    history = {'classifier':[], 'predict':[], 'score': [], 'true':[]}
+    for index, feature in enumerate(lt_features):
+        # create a copy of classifier
+        in_classifier = copy.deepcopy(classifier)
+        # fit classifier
+        in_classifier.fit(feature[TRAIN], lt_dataset[index][TRAIN][SYMPTOM])
+        # Save classifier
+        history['classifier'].append(in_classifier)
+        # Save predict
+        history['predict'].append(in_classifier.predict(feature[TEST]))
+        # Save true
+        history['true'].append(lt_dataset[index][TEST][SYMPTOM])
+        # Save score
+        history['score'].append(in_classifier.score(feature[TEST],
+                                                    lt_dataset[index][TEST][SYMPTOM]))
 
-Xtot=[]
-for i in range(Xrb.shape[0]):
-    Xtot.append(np.concatenate((Xrb[i],Xv[i])))
+    return history
 
-## Try a simplistic classification (both in term of ROI, features and classifier)
-
-
-
-# from sklearn.datasets import make_classification
-
-Xb=np.vstack(Xtot) # (X)
-Xb = np.nan_to_num(Xb)
-#yb=y[idx]
-yb=y
-
-
-kf = StratifiedShuffleSplit(random_state=159)
-
-acc1=[]
-acc2=[]
-acc3=[]
-preds1=[]
-trues1=[]
-preds2=[]
-trues2=[]
-preds3=[]
-trues3=[]
-the_dict = {}
-for index, my_split in enumerate(kf.split(Xb, yb)):
-    train = my_split[0]
-    test = my_split[1]
-    print("Train : ", train)
-    print('test : ', test)
-    X_train, X_test, y_train, y_test = Xb[train], Xb[test], yb[train], yb[test]
-    id_train, id_test = id_im[train], id_im[test]
-    clf1 = LinearDiscriminantAnalysis(solver='lsqr', shrinkage='auto').fit(X_train, y_train)
-    clf2 = LinearDiscriminantAnalysis(solver='lsqr', shrinkage=None).fit(X_train, y_train)
-    clf3 = QuadraticDiscriminantAnalysis().fit(X_train, y_train)
-    cl_svc = SVC()
-    acc1.append(clf1.score(X_test,y_test))
-    acc2.append(clf2.score(X_test,y_test))
-    acc3.append(clf3.score(X_test,y_test))
-    preds1.append(clf1.predict(X_test))
-    trues1.append(y_test)
-    preds2.append(clf2.predict(X_test))
-    trues2.append(y_test)
-    preds3.append(clf3.predict(X_test))
-    trues3.append(y_test)
-    the_dict["l_auto_acc_" + str(index)] = clf1.score(X_test,y_test)
-    the_dict["l_none_acc_" + str(index)] = clf2.score(X_test,y_test)
-    the_dict["quadra_acc_" + str(index)] = clf3.score(X_test,y_test)
-    the_dict["l_auto_pred_" + str(index)] = clf1.predict(X_test)
-    the_dict["l_none_pred_" + str(index)] = clf2.predict(X_test)
-    the_dict["quadra_pred_" + str(index)] = clf3.predict(X_test)
-    the_dict["true_" + str(index)] = y_test
-
-
-def plot_confusion_matrix(cm, title='Confusion matrix', cmap=plt.cm.Blues):
-    names=['Alt', 'Big', 'Mac', 'Mil', 'Myc', 'Pse', 'Syl']
-    plt.imshow(cm, interpolation='nearest', cmap=cmap)
-    plt.title(title)
-    plt.colorbar()
-    tick_marks = np.arange(len(names))
-    plt.xticks(tick_marks, names, rotation=45)
-    plt.yticks(tick_marks, names)
-    plt.tight_layout()
-    plt.ylabel('True label')
-    plt.xlabel('Predicted label')
-    plt.show()
-
-
-def cal_visu_conf(preds, trues):
-    p=np.concatenate(preds)
-    t=np.concatenate(trues)
-
-    con=confusion_matrix(t,p) #,labels=)
-
-    cm_normalized = con.astype('float') / con.sum(axis=1)[:, np.newaxis]
-
-    plot_confusion_matrix(cm_normalized)
-
-    print(cm_normalized)
-
-
-
-
-print("LINEAR Auto")
-print("Acc = " + str(np.array(acc1).mean()))
-print("Kappa = " + str(cohen_kappa_score(preds1, trues1)))
-#cal_visu_conf(preds1, trues1)
-
-print("LINEAR")
-print("Acc = " + str(np.array(acc2).mean()))
-print("Kappa = " + str(cohen_kappa_score(preds2, trues2)))
-#cal_visu_conf(preds2, trues2)
-
-print("QUADRATIC")
-print("Acc = " + str(np.array(acc3).mean()))
-print("Kappa = " + str(cohen_kappa_score(preds3, trues3)))
-#cal_visu_conf(preds3, trues3)
-
-# Save dictionary
-DICT_FILE = "pred_true.json"
-with open(DICT_FILE, 'w') as file:
-    json.dump(the_dict, file)
 
 def run():
     """
@@ -580,9 +378,45 @@ def run():
     lt_dataset = create_dataset(abs_dir_in, args.rv)
 
     # scan dataset
-    for dataset in lt_dataset:
-        lt_features = features_dataset(dataset, args.rv)
+    lt_features = features_dataset(lt_dataset, args.rv)
 
+    # Define all classifier
+    lt_classifier = [["linear_auto",
+                      LinearDiscriminantAnalysis(solver='lsqr', shrinkage='auto')],
+                     ["linear_none",
+                      LinearDiscriminantAnalysis(solver='lsqr', shrinkage=None)],
+                     ["quatra",
+                      QuadraticDiscriminantAnalysis()],
+                     ["svc", SVC()],
+                     ["dtree", DecisionTreeClassifier(random_state=159)]]
+
+    pool = mp.Pool(processes=len(lt_classifier))
+    results = []
+    out_fits = {}
+    for name, classifier in lt_classifier:
+        out_fits[name] = []
+        results.append(pool.apply_async(all_fit, (classifier,
+                                                  lt_features,
+                                                  lt_dataset),
+                                        callback=out_fits[name].append))
+
+    for result in results:
+        result.wait()
+
+    # Take absolu path of input directory
+    abs_dir_out = os.path.abspath(os.path.expanduser(args.dir_out))
+
+    # Create out directory
+    tsf.create_directory(abs_dir_out)
+
+    # Save data
+    with open(os.path.join(abs_dir_out, 'save'), 'wb') as fsave :
+        pickle.dump(out_fits, fsave)
+
+    # print result
+    for name, classifier in lt_classifier:
+        print("Classifier: " + name)
+        print("score: " + str(np.mean(out_fits[name][0]['score'])))
 
 if __name__=='__main__':
     run()
