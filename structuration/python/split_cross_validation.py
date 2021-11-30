@@ -152,7 +152,8 @@ def run():
 
     for index, symptom in enumerate(LT_CLASS):
         # Take all recto image name
-        lt_name = sorted(glob.glob(op.join(abs_input, symptom, "*ecto*.*"),
+        lt_name = sorted(glob.glob(op.join(abs_input, symptom, '**',
+                                           "*ecto*.*"),
                                    recursive=True))
 
         # Add recto to dataset
@@ -161,7 +162,8 @@ def run():
         # Work with verso
         if args.rv:
             # Take all verso image name
-            lt_name = sorted(glob.glob(op.join(abs_input, symptom, "*erso*.*"),
+            lt_name = sorted(glob.glob(op.join(abs_input, symptom, '**',
+                                               "*erso*.*"),
                                        recursive=True))
 
             # Add verso to dataset
