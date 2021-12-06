@@ -80,7 +80,7 @@ def augmented_image(path_im, nb_iter, seq_aug):
 
     """
     # Get id of image
-    id_im = os.path.basename(path_im)[0:8]
+    id_im = os.path.basename(path_im)[0:14]
     # Get directory of image
     dir_im = os.path.dirname(path_im)
     # Get extension of image
