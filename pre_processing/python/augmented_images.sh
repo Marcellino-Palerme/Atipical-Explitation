@@ -1,7 +1,5 @@
 #!/bin/bash
 #SBATCH --job-name=augmented_images
-#SBATCH --gres=gpu:1
-#SBATCH -p gpu
 #SBATCH --mem=50G
 
 . /softs/local/env/envconda.sh

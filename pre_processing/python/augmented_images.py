@@ -97,7 +97,7 @@ def augmented_image(path_im, nb_iter, seq_aug):
         temp = tf.image.random_hue(temp, 0.5)
         temp = tf.image.random_saturation(temp, 0, 1)
         img_name = "Au" + str(index) + "_" + id_im + ext_im
-        aug_img = seq_aug(aimg)
+        aug_img = seq_aug(np.array([aimg]))
         tf.keras.preprocessing.image.save_img(os.path.join(dir_im, img_name),
                                               aug_img[0])
 
