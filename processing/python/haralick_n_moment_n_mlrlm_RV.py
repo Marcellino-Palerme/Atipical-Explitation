@@ -155,27 +155,34 @@ def lrlm(in_im, in_mask):
         # Calculate Gray Level Run Length Matrix (GLRLM) Features
         glrlm = RadiomicsGLRLM(im_itk, mask)
         glrlm._initCalculation()
-        # Extract features
-        output = [glrlm.getShortRunEmphasisFeatureValue()[0],
-                  glrlm.getLongRunEmphasisFeatureValue()[0],
-                  glrlm.getGrayLevelNonUniformityFeatureValue()[0],
-                  glrlm.getGrayLevelNonUniformityNormalizedFeatureValue()[0],
-                  glrlm.getRunLengthNonUniformityFeatureValue()[0],
-                  glrlm.getRunLengthNonUniformityNormalizedFeatureValue()[0],
-                  glrlm.getRunPercentageFeatureValue()[0],
-                  glrlm.getGrayLevelVarianceFeatureValue()[0],
-                  glrlm.getRunVarianceFeatureValue()[0],
-                  glrlm.getRunEntropyFeatureValue()[0],
-                  glrlm.getLowGrayLevelRunEmphasisFeatureValue()[0],
-                  glrlm.getHighGrayLevelRunEmphasisFeatureValue()[0],
-                  glrlm.getShortRunLowGrayLevelEmphasisFeatureValue()[0],
-                  glrlm.getShortRunHighGrayLevelEmphasisFeatureValue()[0],
-                  glrlm.getLongRunLowGrayLevelEmphasisFeatureValue()[0],
-                  glrlm.getLongRunHighGrayLevelEmphasisFeatureValue()[0]
-                 ]
     except ValueError:
-        pass
+        return output
 
+    functions = [glrlm.getShortRunEmphasisFeatureValue,
+                 glrlm.getLongRunEmphasisFeatureValue,
+                 glrlm.getGrayLevelNonUniformityFeatureValue,
+                 glrlm.getGrayLevelNonUniformityNormalizedFeatureValue,
+                 glrlm.getRunLengthNonUniformityFeatureValue,
+                 glrlm.getRunLengthNonUniformityNormalizedFeatureValue,
+                 glrlm.getRunPercentageFeatureValue,
+                 glrlm.getGrayLevelVarianceFeatureValue,
+                 glrlm.getRunVarianceFeatureValue,
+                 glrlm.getRunEntropyFeatureValue,
+                 glrlm.getLowGrayLevelRunEmphasisFeatureValue,
+                 glrlm.getHighGrayLevelRunEmphasisFeatureValue,
+                 glrlm.getShortRunLowGrayLevelEmphasisFeatureValue,
+                 glrlm.getShortRunHighGrayLevelEmphasisFeatureValue,
+                 glrlm.getLongRunLowGrayLevelEmphasisFeatureValue,
+                 glrlm.getLongRunHighGrayLevelEmphasisFeatureValue
+                ]
+
+    # Extract features
+    for index, func in enumerate(functions):
+        try:
+            output[index] = func()[0]
+        except ValueError:
+            output[index] = 0
+  
     output = np.nan_to_num(output, False, nan=0, posinf=np.iinfo('int64').max,
                            neginf=np.iinfo('int64').min)
 
@@ -209,6 +216,10 @@ def extract_features(path_im):
     res1 = np.zeros((13,))
     res2 = np.zeros((13,))
     res3 = np.zeros((13,))
+    a_glrlm = np.zeros((16,))
+    a_rlrlm = np.zeros((16,))
+    a_vlrlm = np.zeros((16,))
+    a_blrlm = np.zeros((16,))
 
     # Not use background for moments
     im_gray = io.imread(path_im, True, 'matplotlib')
