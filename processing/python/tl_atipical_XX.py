@@ -63,7 +63,7 @@ MY_DATE = sys.argv[1]
 STRUC = sys.argv[2].upper()
 DIR_OUT = os.path.join(os.path.dirname(__file__),
                        "report",
-                       MY_DATE + "_tl_atipical_" + STRUC)
+                       MY_DATE + "_tl_atipical_XX")
 
 PATH = "/home/genouest/inra_umr1349/mpalerme/dataset_atipical"
 train_dir = os.path.join(PATH, 'train')
@@ -116,9 +116,6 @@ test_dataset = create_dataset(test_dir,
                               shuffle=True,
                               batch_size=BATCH_SIZE,
                               image_size=IMG_SIZE)
-
-print('Number of validation batches: %d' % tf.data.experimental.cardinality(validation_dataset))
-print('Number of test batches: %d' % tf.data.experimental.cardinality(test_dataset))
 
 # Select structure used
 if re.match(r'^B.$', STRUC):
