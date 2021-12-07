@@ -14,6 +14,7 @@ import re
 import numpy as np
 import tensorflow as tf
 import json
+import pickle
 
 
 def pred_true(model, dataset, prefix):
@@ -189,3 +190,19 @@ my_dict.update(pred_true(model, validation_dataset, "val"))
 DICT_FILE = os.path.join(DIR_OUT, MY_DATE + "_pred_true.json")
 with open(DICT_FILE, 'w') as file:
     json.dump(my_dict, file)
+
+# Save model
+MODEL_NAME = os.path.join(DIR_OUT, MY_DATE + "_" + STRUC)
+with open(MODEL_NAME, 'wb') as file:
+    pickle.dump({'model':model}, file)
+
+# Save dataset
+DATA_NAME = os.path.join(DIR_OUT, MY_DATE + "_test")
+with open(DATA_NAME, 'wb') as file:
+    pickle.dump({'test':test_dataset}, file)
+DATA_NAME = os.path.join(DIR_OUT, MY_DATE + "_train")
+with open(DATA_NAME, 'wb') as file:
+    pickle.dump({'train':train_dataset}, file)
+DATA_NAME = os.path.join(DIR_OUT, MY_DATE + "_val")
+with open(DATA_NAME, 'wb') as file:
+    pickle.dump({'validation':validation_dataset}, file)
