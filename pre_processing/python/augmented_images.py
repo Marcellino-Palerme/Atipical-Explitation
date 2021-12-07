@@ -121,7 +121,7 @@ def run():
     # Create augmentation sequential
     exp = tf.keras.layers.experimental.preprocessing
     seq_aug = tf.keras.Sequential([exp.RandomRotation(0.5, 'constant'),
-                                   exp.RandomZoom(0.2, 'constant')])
+                                   exp.RandomZoom(0.2, fill_mode='constant')])
 
     for sympt in lt_symptoms:
         # Take recto images
