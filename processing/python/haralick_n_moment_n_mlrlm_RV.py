@@ -149,27 +149,37 @@ def lrlm(in_im, in_mask):
     # Transform numpy  image to simpleITK  image
     im_itk = sitk.GetImageFromArray(in_im)
     mask = sitk.GetImageFromArray(in_mask)
-    # Calculate Gray Level Run Length Matrix (GLRLM) Features
-    glrlm = RadiomicsGLRLM(im_itk, mask)
-    glrlm._initCalculation()
-    # Extract features
-    return [glrlm.getShortRunEmphasisFeatureValue()[0],
-            glrlm.getLongRunEmphasisFeatureValue()[0],
-            glrlm.getGrayLevelNonUniformityFeatureValue()[0],
-            glrlm.getGrayLevelNonUniformityNormalizedFeatureValue()[0],
-            glrlm.getRunLengthNonUniformityFeatureValue()[0],
-            glrlm.getRunLengthNonUniformityNormalizedFeatureValue()[0],
-            glrlm.getRunPercentageFeatureValue()[0],
-            glrlm.getGrayLevelVarianceFeatureValue()[0],
-            glrlm.getRunVarianceFeatureValue()[0],
-            glrlm.getRunEntropyFeatureValue()[0],
-            glrlm.getLowGrayLevelRunEmphasisFeatureValue()[0],
-            glrlm.getHighGrayLevelRunEmphasisFeatureValue()[0],
-            glrlm.getShortRunLowGrayLevelEmphasisFeatureValue()[0],
-            glrlm.getShortRunHighGrayLevelEmphasisFeatureValue()[0],
-            glrlm.getLongRunLowGrayLevelEmphasisFeatureValue()[0],
-            glrlm.getLongRunHighGrayLevelEmphasisFeatureValue()[0]
-           ]
+    # Define output
+    output = np.zeros((16,))
+    try:
+        # Calculate Gray Level Run Length Matrix (GLRLM) Features
+        glrlm = RadiomicsGLRLM(im_itk, mask)
+        glrlm._initCalculation()
+        # Extract features
+        output = [glrlm.getShortRunEmphasisFeatureValue()[0],
+                  glrlm.getLongRunEmphasisFeatureValue()[0],
+                  glrlm.getGrayLevelNonUniformityFeatureValue()[0],
+                  glrlm.getGrayLevelNonUniformityNormalizedFeatureValue()[0],
+                  glrlm.getRunLengthNonUniformityFeatureValue()[0],
+                  glrlm.getRunLengthNonUniformityNormalizedFeatureValue()[0],
+                  glrlm.getRunPercentageFeatureValue()[0],
+                  glrlm.getGrayLevelVarianceFeatureValue()[0],
+                  glrlm.getRunVarianceFeatureValue()[0],
+                  glrlm.getRunEntropyFeatureValue()[0],
+                  glrlm.getLowGrayLevelRunEmphasisFeatureValue()[0],
+                  glrlm.getHighGrayLevelRunEmphasisFeatureValue()[0],
+                  glrlm.getShortRunLowGrayLevelEmphasisFeatureValue()[0],
+                  glrlm.getShortRunHighGrayLevelEmphasisFeatureValue()[0],
+                  glrlm.getLongRunLowGrayLevelEmphasisFeatureValue()[0],
+                  glrlm.getLongRunHighGrayLevelEmphasisFeatureValue()[0]
+                 ]
+    except ValueError:
+        pass
+
+    output = np.nan_to_num(output, False, nan=0, posinf=np.iinfo('int64').max,
+                           neginf=np.iinfo('int64').min)
+
+    return output
 
 
 def extract_features(path_im):
@@ -186,7 +196,7 @@ def extract_features(path_im):
     list of features.
 
     """
-
+    print(path_im)
     # Read image
     image = mh.imread(path_im)
 
@@ -199,23 +209,29 @@ def extract_features(path_im):
     res1 = np.zeros((13,))
     res2 = np.zeros((13,))
     res3 = np.zeros((13,))
-    a_glrlm = np.zeros((16,))
-    a_rlrlm = np.zeros((16,))
-    a_vlrlm = np.zeros((16,))
-    a_blrlm = np.zeros((16,))
+
     # Not use background for moments
     im_gray = io.imread(path_im, True, 'matplotlib')
     if len(np.nonzero(im_gray)[0]) > 0:
         try:
             res1=mh.features.haralick(rR,ignore_zeros=True,return_mean=True)
+            res1 = np.nan_to_num(res1, False, nan=0,
+                                 posinf=np.iinfo('int64').max,
+                                 neginf=np.iinfo('int64').min)
         except ValueError:
             pass
         try:
             res2=mh.features.haralick(gR,ignore_zeros=True,return_mean=True)
+            res2 = np.nan_to_num(res2, False, nan=0,
+                                 posinf=np.iinfo('int64').max,
+                                 neginf=np.iinfo('int64').min)
         except ValueError:
             pass
         try:
             res3=mh.features.haralick(bR,ignore_zeros=True,return_mean=True)
+            res3 = np.nan_to_num(res3, False, nan=0,
+                                 posinf=np.iinfo('int64').max,
+                                 neginf=np.iinfo('int64').min)
         except ValueError:
             pass
 
