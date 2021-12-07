@@ -80,7 +80,7 @@ def augmented_image(path_im, nb_iter, seq_aug):
 
     """
     # Get id of image
-    id_im = os.path.basename(path_im)[0:14]
+    id_im = os.path.basename(path_im)[0:21]
     # Get directory of image
     dir_im = os.path.dirname(path_im)
     # Get extension of image
@@ -92,10 +92,6 @@ def augmented_image(path_im, nb_iter, seq_aug):
     aimg = tf.keras.preprocessing.image.img_to_array(img)
 
     for index in range(nb_iter):
-        temp = aimg.copy()
-        temp = tf.image.random_brightness(temp, 1)
-        temp = tf.image.random_hue(temp, 0.5)
-        temp = tf.image.random_saturation(temp, 0, 1)
         img_name = "Au" + str(index) + "_" + id_im + ext_im
         aug_img = seq_aug(np.array([aimg]))
         tf.keras.preprocessing.image.save_img(os.path.join(dir_im, img_name),
@@ -124,10 +120,8 @@ def run():
 
     # Create augmentation sequential
     exp = tf.keras.layers.experimental.preprocessing
-    seq_aug = tf.keras.Sequential([exp.RandomContrast(0.5),
-                                   exp.RandomRotation(0.5, 'constant'),
-                                   exp.RandomTranslation(0.5, 0.5, 'constant'),
-                                   exp.RandomZoom(0.5, 0.5, 'constant')])
+    seq_aug = tf.keras.Sequential([exp.RandomRotation(0.5, 'constant'),
+                                   exp.RandomZoom(0.2, fill_mode='constant')])
 
     for sympt in lt_symptoms:
         # Take recto images
