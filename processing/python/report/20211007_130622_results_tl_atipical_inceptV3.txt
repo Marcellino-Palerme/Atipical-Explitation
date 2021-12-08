@@ -1,715 +1,0 @@
-2021-10-07 13:06:33.130167: I tensorflow/stream_executor/platform/default/dso_loader.cc:48] Successfully opened dynamic library libcudart.so.10.1
-2021-10-07 13:07:01.253431: I tensorflow/stream_executor/platform/default/dso_loader.cc:48] Successfully opened dynamic library libcuda.so.1
-2021-10-07 13:07:03.090528: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1716] Found device 0 with properties: 
-pciBusID: 0000:af:00.0 name: Tesla V100-PCIE-16GB computeCapability: 7.0
-coreClock: 1.38GHz coreCount: 80 deviceMemorySize: 15.78GiB deviceMemoryBandwidth: 836.37GiB/s
-2021-10-07 13:07:03.090583: I tensorflow/stream_executor/platform/default/dso_loader.cc:48] Successfully opened dynamic library libcudart.so.10.1
-2021-10-07 13:07:03.388610: I tensorflow/stream_executor/platform/default/dso_loader.cc:48] Successfully opened dynamic library libcublas.so.10
-2021-10-07 13:07:03.514890: I tensorflow/stream_executor/platform/default/dso_loader.cc:48] Successfully opened dynamic library libcufft.so.10
-2021-10-07 13:07:03.644665: I tensorflow/stream_executor/platform/default/dso_loader.cc:48] Successfully opened dynamic library libcurand.so.10
-2021-10-07 13:07:03.776512: I tensorflow/stream_executor/platform/default/dso_loader.cc:48] Successfully opened dynamic library libcusolver.so.10
-2021-10-07 13:07:03.872783: I tensorflow/stream_executor/platform/default/dso_loader.cc:48] Successfully opened dynamic library libcusparse.so.10
-2021-10-07 13:07:04.262946: I tensorflow/stream_executor/platform/default/dso_loader.cc:48] Successfully opened dynamic library libcudnn.so.7
-2021-10-07 13:07:04.266487: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1858] Adding visible gpu devices: 0
-2021-10-07 13:07:04.268386: I tensorflow/core/platform/cpu_feature_guard.cc:142] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN)to use the following CPU instructions in performance-critical operations:  AVX2 AVX512F FMA
-To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
-2021-10-07 13:07:04.283021: I tensorflow/core/platform/profile_utils/cpu_utils.cc:104] CPU Frequency: 2200000000 Hz
-2021-10-07 13:07:04.283520: I tensorflow/compiler/xla/service/service.cc:168] XLA service 0x561f4a34a7e0 initialized for platform Host (this does not guarantee that XLA will be used). Devices:
-2021-10-07 13:07:04.283543: I tensorflow/compiler/xla/service/service.cc:176]   StreamExecutor device (0): Host, Default Version
-2021-10-07 13:07:04.385329: I tensorflow/compiler/xla/service/service.cc:168] XLA service 0x561f4a35e190 initialized for platform CUDA (this does not guarantee that XLA will be used). Devices:
-2021-10-07 13:07:04.385360: I tensorflow/compiler/xla/service/service.cc:176]   StreamExecutor device (0): Tesla V100-PCIE-16GB, Compute Capability 7.0
-2021-10-07 13:07:04.390919: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1716] Found device 0 with properties: 
-pciBusID: 0000:af:00.0 name: Tesla V100-PCIE-16GB computeCapability: 7.0
-coreClock: 1.38GHz coreCount: 80 deviceMemorySize: 15.78GiB deviceMemoryBandwidth: 836.37GiB/s
-2021-10-07 13:07:04.390952: I tensorflow/stream_executor/platform/default/dso_loader.cc:48] Successfully opened dynamic library libcudart.so.10.1
-2021-10-07 13:07:04.390978: I tensorflow/stream_executor/platform/default/dso_loader.cc:48] Successfully opened dynamic library libcublas.so.10
-2021-10-07 13:07:04.390989: I tensorflow/stream_executor/platform/default/dso_loader.cc:48] Successfully opened dynamic library libcufft.so.10
-2021-10-07 13:07:04.390998: I tensorflow/stream_executor/platform/default/dso_loader.cc:48] Successfully opened dynamic library libcurand.so.10
-2021-10-07 13:07:04.391007: I tensorflow/stream_executor/platform/default/dso_loader.cc:48] Successfully opened dynamic library libcusolver.so.10
-2021-10-07 13:07:04.391018: I tensorflow/stream_executor/platform/default/dso_loader.cc:48] Successfully opened dynamic library libcusparse.so.10
-2021-10-07 13:07:04.391029: I tensorflow/stream_executor/platform/default/dso_loader.cc:48] Successfully opened dynamic library libcudnn.so.7
-2021-10-07 13:07:04.392063: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1858] Adding visible gpu devices: 0
-2021-10-07 13:07:04.392089: I tensorflow/stream_executor/platform/default/dso_loader.cc:48] Successfully opened dynamic library libcudart.so.10.1
-2021-10-07 13:07:05.965440: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1257] Device interconnect StreamExecutor with strength 1 edge matrix:
-2021-10-07 13:07:05.965477: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1263]      0 
-2021-10-07 13:07:05.965483: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1276] 0:   N 
-2021-10-07 13:07:05.966885: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1402] Created TensorFlow device (/job:localhost/replica:0/task:0/device:GPU:0 with 14763 MB memory) -> physical GPU (device: 0, name: Tesla V100-PCIE-16GB, pci bus id: 0000:af:00.0, compute capability: 7.0)
-Found 3926 files belonging to 7 classes.
-Found 491 files belonging to 7 classes.
-Found 491 files belonging to 7 classes.
-Number of validation batches: 16
-Number of test batches: 16
-Downloading data from https://storage.googleapis.com/tensorflow/keras-applications/inception_v3/inception_v3_weights_tf_dim_ordering_tf_kernels_notop.h5
-    8192/87910968 [..............................] - ETA: 2s  278528/87910968 [..............................] - ETA: 15s 1523712/87910968 [..............................] - ETA: 5s  3342336/87910968 [>.............................] - ETA: 4s 4202496/87910968 [>.............................] - ETA: 6s 5758976/87910968 [>.............................] - ETA: 5s 8347648/87910968 [=>............................] - ETA: 4s11984896/87910968 [===>..........................] - ETA: 3s14999552/87910968 [====>.........................] - ETA: 2s16785408/87910968 [====>.........................] - ETA: 4s18194432/87910968 [=====>........................] - ETA: 3s20619264/87910968 [======>.......................] - ETA: 3s24272896/87910968 [=======>......................] - ETA: 2s26288128/87910968 [=======>......................] - ETA: 2s28475392/87910968 [========>.....................] - ETA: 2s31596544/87910968 [=========>....................] - ETA: 2s34119680/87910968 [==========>...................] - ETA: 2s36806656/87910968 [===========>..................] - ETA: 1s40017920/87910968 [============>.................] - ETA: 1s41951232/87910968 [=============>................] - ETA: 2s43999232/87910968 [==============>...............] - ETA: 1s45752320/87910968 [==============>...............] - ETA: 1s47702016/87910968 [===============>..............] - ETA: 1s51208192/87910968 [================>.............] - ETA: 1s53420032/87910968 [=================>............] - ETA: 1s56516608/87910968 [==================>...........] - ETA: 1s59023360/87910968 [===================>..........] - ETA: 1s61808640/87910968 [====================>.........] - ETA: 0s64544768/87910968 [=====================>........] - ETA: 0s67117056/87910968 [=====================>........] - ETA: 0s69296128/87910968 [======================>.......] - ETA: 0s71868416/87910968 [=======================>......] - ETA: 0s75128832/87910968 [========================>.....] - ETA: 0s78028800/87910968 [=========================>....] - ETA: 0s80453632/87910968 [==========================>...] - ETA: 0s83255296/87910968 [===========================>..] - ETA: 0s87007232/87910968 [============================>.] - ETA: 0s87916544/87910968 [==============================] - 3s 0us/step
-2021-10-07 13:07:17.107693: I tensorflow/stream_executor/platform/default/dso_loader.cc:48] Successfully opened dynamic library libcublas.so.10
-2021-10-07 13:07:26.839612: I tensorflow/stream_executor/platform/default/dso_loader.cc:48] Successfully opened dynamic library libcudnn.so.7
-Epoch 1/30
-123/123 - 102s - loss: 1.6843 - accuracy: 0.6296 - val_loss: 1.2622 - val_accuracy: 0.5988
-Epoch 2/30
-123/123 - 10s - loss: 0.9671 - accuracy: 0.7392 - val_loss: 0.9205 - val_accuracy: 0.7047
-Epoch 3/30
-123/123 - 8s - loss: 0.7336 - accuracy: 0.7751 - val_loss: 0.9258 - val_accuracy: 0.7108
-Epoch 4/30
-123/123 - 10s - loss: 0.6059 - accuracy: 0.8057 - val_loss: 0.8716 - val_accuracy: 0.7189
-Epoch 5/30
-123/123 - 8s - loss: 0.5309 - accuracy: 0.8125 - val_loss: 0.8371 - val_accuracy: 0.7393
-Epoch 6/30
-123/123 - 8s - loss: 0.5097 - accuracy: 0.8240 - val_loss: 0.8208 - val_accuracy: 0.7454
-Epoch 7/30
-123/123 - 9s - loss: 0.4786 - accuracy: 0.8355 - val_loss: 0.8301 - val_accuracy: 0.7373
-Epoch 8/30
-123/123 - 9s - loss: 0.4390 - accuracy: 0.8408 - val_loss: 0.8428 - val_accuracy: 0.7189
-Epoch 9/30
-123/123 - 8s - loss: 0.4029 - accuracy: 0.8571 - val_loss: 0.8464 - val_accuracy: 0.7312
-Epoch 10/30
-123/123 - 8s - loss: 0.3899 - accuracy: 0.8528 - val_loss: 0.8186 - val_accuracy: 0.7637
-Epoch 11/30
-123/123 - 8s - loss: 0.3817 - accuracy: 0.8617 - val_loss: 0.8676 - val_accuracy: 0.7413
-Epoch 12/30
-123/123 - 8s - loss: 0.3785 - accuracy: 0.8655 - val_loss: 0.8554 - val_accuracy: 0.7515
-Epoch 13/30
-123/123 - 9s - loss: 0.3677 - accuracy: 0.8675 - val_loss: 0.8209 - val_accuracy: 0.7312
-Epoch 14/30
-123/123 - 8s - loss: 0.3603 - accuracy: 0.8627 - val_loss: 0.8809 - val_accuracy: 0.7352
-Epoch 15/30
-123/123 - 8s - loss: 0.3695 - accuracy: 0.8642 - val_loss: 0.8754 - val_accuracy: 0.7413
-Epoch 16/30
-123/123 - 8s - loss: 0.3726 - accuracy: 0.8630 - val_loss: 0.8476 - val_accuracy: 0.7373
-Epoch 17/30
-123/123 - 8s - loss: 0.3713 - accuracy: 0.8591 - val_loss: 0.8491 - val_accuracy: 0.7434
-Epoch 18/30
-123/123 - 8s - loss: 0.3580 - accuracy: 0.8693 - val_loss: 0.8340 - val_accuracy: 0.7393
-Epoch 19/30
-123/123 - 8s - loss: 0.3436 - accuracy: 0.8724 - val_loss: 0.8488 - val_accuracy: 0.7515
-Epoch 20/30
-123/123 - 9s - loss: 0.3699 - accuracy: 0.8630 - val_loss: 0.8818 - val_accuracy: 0.7434
-Epoch 21/30
-123/123 - 9s - loss: 0.3465 - accuracy: 0.8675 - val_loss: 0.8509 - val_accuracy: 0.7434
-Epoch 22/30
-123/123 - 8s - loss: 0.3614 - accuracy: 0.8614 - val_loss: 0.8547 - val_accuracy: 0.7556
-Epoch 23/30
-123/123 - 8s - loss: 0.3410 - accuracy: 0.8747 - val_loss: 0.8486 - val_accuracy: 0.7495
-Epoch 24/30
-123/123 - 8s - loss: 0.3413 - accuracy: 0.8658 - val_loss: 0.8333 - val_accuracy: 0.7597
-Epoch 25/30
-123/123 - 8s - loss: 0.3366 - accuracy: 0.8739 - val_loss: 0.8592 - val_accuracy: 0.7413
-Epoch 26/30
-123/123 - 8s - loss: 0.3264 - accuracy: 0.8826 - val_loss: 0.8605 - val_accuracy: 0.7495
-Epoch 27/30
-123/123 - 8s - loss: 0.3071 - accuracy: 0.8826 - val_loss: 0.8938 - val_accuracy: 0.7536
-Epoch 28/30
-123/123 - 8s - loss: 0.3601 - accuracy: 0.8716 - val_loss: 0.8401 - val_accuracy: 0.7454
-Epoch 29/30
-123/123 - 9s - loss: 0.3101 - accuracy: 0.8818 - val_loss: 0.8655 - val_accuracy: 0.7515
-Epoch 30/30
-123/123 - 8s - loss: 0.3225 - accuracy: 0.8856 - val_loss: 0.8683 - val_accuracy: 0.7495
- 1/16 [>.............................] - ETA: 0s - loss: 0.6725 - accuracy: 0.6875 2/16 [==>...........................] - ETA: 5s - loss: 0.7194 - accuracy: 0.7031 3/16 [====>.........................] - ETA: 5s - loss: 0.6420 - accuracy: 0.7292 4/16 [======>.......................] - ETA: 6s - loss: 0.6886 - accuracy: 0.7500 5/16 [========>.....................] - ETA: 6s - loss: 0.6841 - accuracy: 0.7563 6/16 [==========>...................] - ETA: 5s - loss: 0.7229 - accuracy: 0.7500 7/16 [============>.................] - ETA: 5s - loss: 0.7795 - accuracy: 0.7455 8/16 [==============>...............] - ETA: 4s - loss: 0.8158 - accuracy: 0.734410/16 [=================>............] - ETA: 2s - loss: 0.7350 - accuracy: 0.750012/16 [=====================>........] - ETA: 1s - loss: 0.7737 - accuracy: 0.757814/16 [=========================>....] - ETA: 0s - loss: 0.7620 - accuracy: 0.761216/16 [==============================] - ETA: 0s - loss: 0.8053 - accuracy: 0.757616/16 [==============================] - 5s 307ms/step - loss: 0.8053 - accuracy: 0.7576
-0.7576375007629395
-Found 3926 files belonging to 7 classes.
-Found 491 files belonging to 7 classes.
-Found 491 files belonging to 7 classes.
-Number of validation batches: 16
-Number of test batches: 16
-Epoch 1/30
-123/123 - 10s - loss: 1.6327 - accuracy: 0.6299 - val_loss: 0.9657 - val_accuracy: 0.6701
-Epoch 2/30
-123/123 - 9s - loss: 0.9814 - accuracy: 0.7387 - val_loss: 0.8848 - val_accuracy: 0.7271
-Epoch 3/30
-123/123 - 8s - loss: 0.7513 - accuracy: 0.7725 - val_loss: 0.8807 - val_accuracy: 0.7413
-Epoch 4/30
-123/123 - 10s - loss: 0.5851 - accuracy: 0.8026 - val_loss: 0.8140 - val_accuracy: 0.7699
-Epoch 5/30
-123/123 - 8s - loss: 0.5127 - accuracy: 0.8240 - val_loss: 0.8156 - val_accuracy: 0.7780
-Epoch 6/30
-123/123 - 8s - loss: 0.4482 - accuracy: 0.8454 - val_loss: 0.8580 - val_accuracy: 0.7800
-Epoch 7/30
-123/123 - 10s - loss: 0.4330 - accuracy: 0.8497 - val_loss: 0.8291 - val_accuracy: 0.7556
-Epoch 8/30
-123/123 - 9s - loss: 0.4298 - accuracy: 0.8434 - val_loss: 0.8064 - val_accuracy: 0.7637
-Epoch 9/30
-123/123 - 9s - loss: 0.3980 - accuracy: 0.8477 - val_loss: 0.7857 - val_accuracy: 0.7780
-Epoch 10/30
-123/123 - 10s - loss: 0.3945 - accuracy: 0.8563 - val_loss: 0.8129 - val_accuracy: 0.7699
-Epoch 11/30
-123/123 - 9s - loss: 0.3771 - accuracy: 0.8609 - val_loss: 0.8145 - val_accuracy: 0.7780
-Epoch 12/30
-123/123 - 10s - loss: 0.3695 - accuracy: 0.8683 - val_loss: 0.7724 - val_accuracy: 0.7923
-Epoch 13/30
-123/123 - 10s - loss: 0.3751 - accuracy: 0.8640 - val_loss: 0.8012 - val_accuracy: 0.7739
-Epoch 14/30
-123/123 - 9s - loss: 0.3637 - accuracy: 0.8632 - val_loss: 0.8033 - val_accuracy: 0.7841
-Epoch 15/30
-123/123 - 9s - loss: 0.3568 - accuracy: 0.8627 - val_loss: 0.7908 - val_accuracy: 0.7739
-Epoch 16/30
-123/123 - 10s - loss: 0.3483 - accuracy: 0.8691 - val_loss: 0.8334 - val_accuracy: 0.7699
-Epoch 17/30
-123/123 - 8s - loss: 0.3592 - accuracy: 0.8668 - val_loss: 0.7691 - val_accuracy: 0.7617
-Epoch 18/30
-123/123 - 9s - loss: 0.3473 - accuracy: 0.8647 - val_loss: 0.7962 - val_accuracy: 0.7800
-Epoch 19/30
-123/123 - 11s - loss: 0.3351 - accuracy: 0.8739 - val_loss: 0.8329 - val_accuracy: 0.7760
-Epoch 20/30
-123/123 - 8s - loss: 0.3531 - accuracy: 0.8678 - val_loss: 0.8207 - val_accuracy: 0.7821
-Epoch 21/30
-123/123 - 8s - loss: 0.3733 - accuracy: 0.8589 - val_loss: 0.8031 - val_accuracy: 0.7841
-Epoch 22/30
-123/123 - 8s - loss: 0.3264 - accuracy: 0.8765 - val_loss: 0.8105 - val_accuracy: 0.7760
-Epoch 23/30
-123/123 - 8s - loss: 0.3515 - accuracy: 0.8663 - val_loss: 0.8199 - val_accuracy: 0.7637
-Epoch 24/30
-123/123 - 8s - loss: 0.3113 - accuracy: 0.8859 - val_loss: 0.8965 - val_accuracy: 0.7597
-Epoch 25/30
-123/123 - 8s - loss: 0.3220 - accuracy: 0.8821 - val_loss: 0.7909 - val_accuracy: 0.7739
-Epoch 26/30
-123/123 - 8s - loss: 0.3477 - accuracy: 0.8729 - val_loss: 0.8164 - val_accuracy: 0.7719
-Epoch 27/30
-123/123 - 9s - loss: 0.3298 - accuracy: 0.8747 - val_loss: 0.7810 - val_accuracy: 0.7984
-Epoch 28/30
-123/123 - 10s - loss: 0.3150 - accuracy: 0.8782 - val_loss: 0.8224 - val_accuracy: 0.7699
-Epoch 29/30
-123/123 - 8s - loss: 0.3166 - accuracy: 0.8790 - val_loss: 0.8421 - val_accuracy: 0.7658
-Epoch 30/30
-123/123 - 8s - loss: 0.3156 - accuracy: 0.8841 - val_loss: 0.8657 - val_accuracy: 0.7739
- 1/16 [>.............................] - ETA: 0s - loss: 0.9028 - accuracy: 0.8125 2/16 [==>...........................] - ETA: 0s - loss: 1.1758 - accuracy: 0.7344 3/16 [====>.........................] - ETA: 0s - loss: 1.1485 - accuracy: 0.7396 4/16 [======>.......................] - ETA: 0s - loss: 1.1178 - accuracy: 0.7266 5/16 [========>.....................] - ETA: 0s - loss: 1.0527 - accuracy: 0.7375 6/16 [==========>...................] - ETA: 0s - loss: 0.9995 - accuracy: 0.7500 7/16 [============>.................] - ETA: 0s - loss: 0.9994 - accuracy: 0.7545 9/16 [===============>..............] - ETA: 0s - loss: 1.0278 - accuracy: 0.746511/16 [===================>..........] - ETA: 0s - loss: 0.9938 - accuracy: 0.733013/16 [=======================>......] - ETA: 0s - loss: 0.9805 - accuracy: 0.745215/16 [===========================>..] - ETA: 0s - loss: 0.9710 - accuracy: 0.754216/16 [==============================] - 1s 47ms/step - loss: 0.9863 - accuracy: 0.7515
-0.7515274882316589
-Found 3925 files belonging to 7 classes.
-Found 492 files belonging to 7 classes.
-Found 491 files belonging to 7 classes.
-Number of validation batches: 16
-Number of test batches: 16
-Epoch 1/30
-123/123 - 11s - loss: 1.6046 - accuracy: 0.6268 - val_loss: 1.0080 - val_accuracy: 0.6829
-Epoch 2/30
-123/123 - 9s - loss: 0.9173 - accuracy: 0.7427 - val_loss: 0.9231 - val_accuracy: 0.7276
-Epoch 3/30
-123/123 - 8s - loss: 0.7009 - accuracy: 0.7811 - val_loss: 0.8973 - val_accuracy: 0.7459
-Epoch 4/30
-123/123 - 9s - loss: 0.6002 - accuracy: 0.8051 - val_loss: 0.9421 - val_accuracy: 0.7276
-Epoch 5/30
-123/123 - 8s - loss: 0.5157 - accuracy: 0.8173 - val_loss: 0.8990 - val_accuracy: 0.7398
-Epoch 6/30
-123/123 - 8s - loss: 0.4947 - accuracy: 0.8234 - val_loss: 0.8487 - val_accuracy: 0.7602
-Epoch 7/30
-123/123 - 9s - loss: 0.4439 - accuracy: 0.8433 - val_loss: 0.8012 - val_accuracy: 0.7886
-Epoch 8/30
-123/123 - 8s - loss: 0.4355 - accuracy: 0.8459 - val_loss: 0.8533 - val_accuracy: 0.7785
-Epoch 9/30
-123/123 - 9s - loss: 0.4061 - accuracy: 0.8540 - val_loss: 0.8127 - val_accuracy: 0.7642
-Epoch 10/30
-123/123 - 8s - loss: 0.4096 - accuracy: 0.8466 - val_loss: 0.8433 - val_accuracy: 0.7561
-Epoch 11/30
-123/123 - 8s - loss: 0.3826 - accuracy: 0.8606 - val_loss: 0.8233 - val_accuracy: 0.7764
-Epoch 12/30
-123/123 - 8s - loss: 0.3707 - accuracy: 0.8629 - val_loss: 0.8374 - val_accuracy: 0.7663
-Epoch 13/30
-123/123 - 9s - loss: 0.3553 - accuracy: 0.8739 - val_loss: 0.9357 - val_accuracy: 0.7622
-Epoch 14/30
-123/123 - 8s - loss: 0.3736 - accuracy: 0.8611 - val_loss: 0.9343 - val_accuracy: 0.7561
-Epoch 15/30
-123/123 - 8s - loss: 0.3769 - accuracy: 0.8604 - val_loss: 0.9369 - val_accuracy: 0.7480
-Epoch 16/30
-123/123 - 8s - loss: 0.3490 - accuracy: 0.8744 - val_loss: 0.9140 - val_accuracy: 0.7520
-Epoch 17/30
-123/123 - 8s - loss: 0.3508 - accuracy: 0.8706 - val_loss: 0.8705 - val_accuracy: 0.7683
-Epoch 18/30
-123/123 - 8s - loss: 0.3483 - accuracy: 0.8721 - val_loss: 0.9000 - val_accuracy: 0.7541
-Epoch 19/30
-123/123 - 8s - loss: 0.3472 - accuracy: 0.8701 - val_loss: 0.9370 - val_accuracy: 0.7561
-Epoch 20/30
-123/123 - 8s - loss: 0.3414 - accuracy: 0.8724 - val_loss: 0.8747 - val_accuracy: 0.7683
-Epoch 21/30
-123/123 - 9s - loss: 0.3087 - accuracy: 0.8838 - val_loss: 0.8958 - val_accuracy: 0.7703
-Epoch 22/30
-123/123 - 8s - loss: 0.3319 - accuracy: 0.8767 - val_loss: 0.9255 - val_accuracy: 0.7561
-Epoch 23/30
-123/123 - 8s - loss: 0.3269 - accuracy: 0.8833 - val_loss: 0.8863 - val_accuracy: 0.7541
-Epoch 24/30
-123/123 - 8s - loss: 0.3480 - accuracy: 0.8673 - val_loss: 0.9099 - val_accuracy: 0.7663
-Epoch 25/30
-123/123 - 8s - loss: 0.3280 - accuracy: 0.8836 - val_loss: 0.9200 - val_accuracy: 0.7703
-Epoch 26/30
-123/123 - 8s - loss: 0.3430 - accuracy: 0.8693 - val_loss: 0.8686 - val_accuracy: 0.7561
-Epoch 27/30
-123/123 - 8s - loss: 0.3377 - accuracy: 0.8696 - val_loss: 0.8726 - val_accuracy: 0.7663
-Epoch 28/30
-123/123 - 8s - loss: 0.3139 - accuracy: 0.8846 - val_loss: 0.9372 - val_accuracy: 0.7703
-Epoch 29/30
-123/123 - 9s - loss: 0.3092 - accuracy: 0.8912 - val_loss: 0.9416 - val_accuracy: 0.7520
-Epoch 30/30
-123/123 - 8s - loss: 0.3192 - accuracy: 0.8797 - val_loss: 0.9009 - val_accuracy: 0.7581
- 1/16 [>.............................] - ETA: 0s - loss: 0.6993 - accuracy: 0.7188 2/16 [==>...........................] - ETA: 0s - loss: 0.6039 - accuracy: 0.8125 3/16 [====>.........................] - ETA: 0s - loss: 0.7729 - accuracy: 0.7812 4/16 [======>.......................] - ETA: 0s - loss: 0.7764 - accuracy: 0.7969 5/16 [========>.....................] - ETA: 0s - loss: 0.7732 - accuracy: 0.8000 6/16 [==========>...................] - ETA: 0s - loss: 0.9272 - accuracy: 0.7604 7/16 [============>.................] - ETA: 0s - loss: 0.9848 - accuracy: 0.7411 9/16 [===============>..............] - ETA: 0s - loss: 0.9781 - accuracy: 0.753511/16 [===================>..........] - ETA: 0s - loss: 1.0236 - accuracy: 0.744313/16 [=======================>......] - ETA: 0s - loss: 0.9557 - accuracy: 0.754815/16 [===========================>..] - ETA: 0s - loss: 0.9199 - accuracy: 0.760416/16 [==============================] - 1s 47ms/step - loss: 0.9013 - accuracy: 0.7658
-0.7657840847969055
-Found 3928 files belonging to 7 classes.
-Found 490 files belonging to 7 classes.
-Found 490 files belonging to 7 classes.
-Number of validation batches: 16
-Number of test batches: 16
-Epoch 1/30
-123/123 - 13s - loss: 1.5669 - accuracy: 0.6278 - val_loss: 0.9291 - val_accuracy: 0.7041
-Epoch 2/30
-123/123 - 9s - loss: 0.9198 - accuracy: 0.7429 - val_loss: 0.8488 - val_accuracy: 0.7490
-Epoch 3/30
-123/123 - 8s - loss: 0.7131 - accuracy: 0.7724 - val_loss: 0.8687 - val_accuracy: 0.7551
-Epoch 4/30
-123/123 - 11s - loss: 0.6014 - accuracy: 0.8014 - val_loss: 0.8991 - val_accuracy: 0.7388
-Epoch 5/30
-123/123 - 9s - loss: 0.5202 - accuracy: 0.8210 - val_loss: 0.8308 - val_accuracy: 0.7429
-Epoch 6/30
-123/123 - 9s - loss: 0.4551 - accuracy: 0.8371 - val_loss: 0.8150 - val_accuracy: 0.7388
-Epoch 7/30
-123/123 - 11s - loss: 0.4560 - accuracy: 0.8422 - val_loss: 0.7733 - val_accuracy: 0.7531
-Epoch 8/30
-123/123 - 9s - loss: 0.4055 - accuracy: 0.8541 - val_loss: 0.8000 - val_accuracy: 0.7551
-Epoch 9/30
-123/123 - 9s - loss: 0.4134 - accuracy: 0.8460 - val_loss: 0.7999 - val_accuracy: 0.7388
-Epoch 10/30
-123/123 - 8s - loss: 0.4037 - accuracy: 0.8523 - val_loss: 0.7955 - val_accuracy: 0.7592
-Epoch 11/30
-123/123 - 8s - loss: 0.3876 - accuracy: 0.8587 - val_loss: 0.8294 - val_accuracy: 0.7429
-Epoch 12/30
-123/123 - 8s - loss: 0.3876 - accuracy: 0.8562 - val_loss: 0.8338 - val_accuracy: 0.7571
-Epoch 13/30
-123/123 - 9s - loss: 0.3778 - accuracy: 0.8607 - val_loss: 0.8236 - val_accuracy: 0.7531
-Epoch 14/30
-123/123 - 8s - loss: 0.3840 - accuracy: 0.8597 - val_loss: 0.7819 - val_accuracy: 0.7510
-Epoch 15/30
-123/123 - 9s - loss: 0.3634 - accuracy: 0.8658 - val_loss: 0.7754 - val_accuracy: 0.7592
-Epoch 16/30
-123/123 - 10s - loss: 0.3492 - accuracy: 0.8697 - val_loss: 0.7837 - val_accuracy: 0.7592
-Epoch 17/30
-123/123 - 8s - loss: 0.3488 - accuracy: 0.8689 - val_loss: 0.7831 - val_accuracy: 0.7429
-Epoch 18/30
-123/123 - 8s - loss: 0.3688 - accuracy: 0.8663 - val_loss: 0.8213 - val_accuracy: 0.7490
-Epoch 19/30
-123/123 - 8s - loss: 0.3424 - accuracy: 0.8753 - val_loss: 0.7996 - val_accuracy: 0.7490
-Epoch 20/30
-123/123 - 9s - loss: 0.3392 - accuracy: 0.8750 - val_loss: 0.8152 - val_accuracy: 0.7388
-Epoch 21/30
-123/123 - 8s - loss: 0.3356 - accuracy: 0.8801 - val_loss: 0.8393 - val_accuracy: 0.7531
-Epoch 22/30
-123/123 - 9s - loss: 0.3236 - accuracy: 0.8796 - val_loss: 0.8343 - val_accuracy: 0.7612
-Epoch 23/30
-123/123 - 8s - loss: 0.3313 - accuracy: 0.8786 - val_loss: 0.8455 - val_accuracy: 0.7714
-Epoch 24/30
-123/123 - 8s - loss: 0.3429 - accuracy: 0.8719 - val_loss: 0.8622 - val_accuracy: 0.7449
-Epoch 25/30
-123/123 - 8s - loss: 0.3327 - accuracy: 0.8796 - val_loss: 0.8112 - val_accuracy: 0.7531
-Epoch 26/30
-123/123 - 8s - loss: 0.3191 - accuracy: 0.8844 - val_loss: 0.8541 - val_accuracy: 0.7510
-Epoch 27/30
-123/123 - 8s - loss: 0.3448 - accuracy: 0.8765 - val_loss: 0.8292 - val_accuracy: 0.7592
-Epoch 28/30
-123/123 - 11s - loss: 0.3388 - accuracy: 0.8737 - val_loss: 0.8291 - val_accuracy: 0.7429
-Epoch 29/30
-123/123 - 8s - loss: 0.3062 - accuracy: 0.8844 - val_loss: 0.8642 - val_accuracy: 0.7510
-Epoch 30/30
-123/123 - 8s - loss: 0.3261 - accuracy: 0.8788 - val_loss: 0.9055 - val_accuracy: 0.7408
- 1/16 [>.............................] - ETA: 0s - loss: 1.1144 - accuracy: 0.7500 2/16 [==>...........................] - ETA: 0s - loss: 1.2216 - accuracy: 0.6875 3/16 [====>.........................] - ETA: 0s - loss: 0.9292 - accuracy: 0.7604 4/16 [======>.......................] - ETA: 0s - loss: 1.0980 - accuracy: 0.7344 5/16 [========>.....................] - ETA: 0s - loss: 1.1238 - accuracy: 0.7563 6/16 [==========>...................] - ETA: 0s - loss: 1.0951 - accuracy: 0.7656 7/16 [============>.................] - ETA: 0s - loss: 1.0526 - accuracy: 0.7545 9/16 [===============>..............] - ETA: 0s - loss: 1.1098 - accuracy: 0.746511/16 [===================>..........] - ETA: 0s - loss: 1.0393 - accuracy: 0.758513/16 [=======================>......] - ETA: 0s - loss: 1.0046 - accuracy: 0.757215/16 [===========================>..] - ETA: 0s - loss: 0.9854 - accuracy: 0.760416/16 [==============================] - 1s 46ms/step - loss: 0.9735 - accuracy: 0.7612
-0.7612245082855225
-Found 3926 files belonging to 7 classes.
-Found 491 files belonging to 7 classes.
-Found 491 files belonging to 7 classes.
-Number of validation batches: 16
-Number of test batches: 16
-Epoch 1/30
-123/123 - 10s - loss: 1.6503 - accuracy: 0.6174 - val_loss: 0.9686 - val_accuracy: 0.6965
-Epoch 2/30
-123/123 - 9s - loss: 0.9383 - accuracy: 0.7478 - val_loss: 0.9470 - val_accuracy: 0.7047
-Epoch 3/30
-123/123 - 8s - loss: 0.6936 - accuracy: 0.7825 - val_loss: 0.8664 - val_accuracy: 0.7413
-Epoch 4/30
-123/123 - 10s - loss: 0.5676 - accuracy: 0.8097 - val_loss: 0.9018 - val_accuracy: 0.7251
-Epoch 5/30
-123/123 - 8s - loss: 0.5111 - accuracy: 0.8278 - val_loss: 0.9549 - val_accuracy: 0.7475
-Epoch 6/30
-123/123 - 8s - loss: 0.4855 - accuracy: 0.8349 - val_loss: 0.8875 - val_accuracy: 0.7373
-Epoch 7/30
-123/123 - 10s - loss: 0.4311 - accuracy: 0.8477 - val_loss: 0.8837 - val_accuracy: 0.7332
-Epoch 8/30
-123/123 - 8s - loss: 0.4117 - accuracy: 0.8502 - val_loss: 0.8759 - val_accuracy: 0.7373
-Epoch 9/30
-123/123 - 8s - loss: 0.4136 - accuracy: 0.8538 - val_loss: 0.8876 - val_accuracy: 0.7413
-Epoch 10/30
-123/123 - 8s - loss: 0.3830 - accuracy: 0.8571 - val_loss: 0.8436 - val_accuracy: 0.7495
-Epoch 11/30
-123/123 - 8s - loss: 0.3880 - accuracy: 0.8556 - val_loss: 0.8499 - val_accuracy: 0.7434
-Epoch 12/30
-123/123 - 8s - loss: 0.3775 - accuracy: 0.8569 - val_loss: 0.8489 - val_accuracy: 0.7576
-Epoch 13/30
-123/123 - 10s - loss: 0.3699 - accuracy: 0.8658 - val_loss: 0.9362 - val_accuracy: 0.7251
-Epoch 14/30
-123/123 - 8s - loss: 0.3566 - accuracy: 0.8658 - val_loss: 0.8748 - val_accuracy: 0.7312
-Epoch 15/30
-123/123 - 8s - loss: 0.3643 - accuracy: 0.8622 - val_loss: 0.8851 - val_accuracy: 0.7393
-Epoch 16/30
-123/123 - 8s - loss: 0.3381 - accuracy: 0.8793 - val_loss: 0.9036 - val_accuracy: 0.7475
-Epoch 17/30
-123/123 - 8s - loss: 0.3457 - accuracy: 0.8739 - val_loss: 0.9151 - val_accuracy: 0.7373
-Epoch 18/30
-123/123 - 8s - loss: 0.3429 - accuracy: 0.8754 - val_loss: 0.8741 - val_accuracy: 0.7576
-Epoch 19/30
-123/123 - 8s - loss: 0.3589 - accuracy: 0.8691 - val_loss: 0.8617 - val_accuracy: 0.7637
-Epoch 20/30
-123/123 - 8s - loss: 0.3406 - accuracy: 0.8757 - val_loss: 0.9111 - val_accuracy: 0.7475
-Epoch 21/30
-123/123 - 9s - loss: 0.3160 - accuracy: 0.8900 - val_loss: 0.8568 - val_accuracy: 0.7475
-Epoch 22/30
-123/123 - 8s - loss: 0.3265 - accuracy: 0.8803 - val_loss: 0.8864 - val_accuracy: 0.7556
-Epoch 23/30
-123/123 - 8s - loss: 0.3339 - accuracy: 0.8737 - val_loss: 0.9242 - val_accuracy: 0.7475
-Epoch 24/30
-123/123 - 8s - loss: 0.3318 - accuracy: 0.8739 - val_loss: 0.9064 - val_accuracy: 0.7454
-Epoch 25/30
-123/123 - 8s - loss: 0.3240 - accuracy: 0.8790 - val_loss: 0.9300 - val_accuracy: 0.7291
-Epoch 26/30
-123/123 - 8s - loss: 0.3079 - accuracy: 0.8833 - val_loss: 0.8865 - val_accuracy: 0.7393
-Epoch 27/30
-123/123 - 8s - loss: 0.3045 - accuracy: 0.8872 - val_loss: 0.9555 - val_accuracy: 0.7373
-Epoch 28/30
-123/123 - 8s - loss: 0.3025 - accuracy: 0.8879 - val_loss: 0.9497 - val_accuracy: 0.7393
-Epoch 29/30
-123/123 - 9s - loss: 0.3030 - accuracy: 0.8861 - val_loss: 1.0228 - val_accuracy: 0.7352
-Epoch 30/30
-123/123 - 8s - loss: 0.3198 - accuracy: 0.8793 - val_loss: 0.9847 - val_accuracy: 0.7393
- 1/16 [>.............................] - ETA: 0s - loss: 0.6437 - accuracy: 0.8438 2/16 [==>...........................] - ETA: 0s - loss: 1.1504 - accuracy: 0.7500 3/16 [====>.........................] - ETA: 0s - loss: 1.0848 - accuracy: 0.7500 4/16 [======>.......................] - ETA: 0s - loss: 1.1127 - accuracy: 0.7266 5/16 [========>.....................] - ETA: 0s - loss: 0.9550 - accuracy: 0.7563 6/16 [==========>...................] - ETA: 0s - loss: 0.9869 - accuracy: 0.7500 7/16 [============>.................] - ETA: 0s - loss: 1.0264 - accuracy: 0.7455 8/16 [==============>...............] - ETA: 0s - loss: 1.0594 - accuracy: 0.750010/16 [=================>............] - ETA: 0s - loss: 1.1190 - accuracy: 0.731212/16 [=====================>........] - ETA: 0s - loss: 1.0772 - accuracy: 0.731814/16 [=========================>....] - ETA: 0s - loss: 1.0060 - accuracy: 0.752216/16 [==============================] - ETA: 0s - loss: 1.0095 - accuracy: 0.749516/16 [==============================] - 1s 49ms/step - loss: 1.0095 - accuracy: 0.7495
-0.7494908571243286
-Found 3925 files belonging to 7 classes.
-Found 492 files belonging to 7 classes.
-Found 491 files belonging to 7 classes.
-Number of validation batches: 16
-Number of test batches: 16
-Epoch 1/30
-123/123 - 10s - loss: 1.7075 - accuracy: 0.6189 - val_loss: 0.9722 - val_accuracy: 0.6829
-Epoch 2/30
-123/123 - 8s - loss: 0.9502 - accuracy: 0.7457 - val_loss: 0.7752 - val_accuracy: 0.7602
-Epoch 3/30
-123/123 - 9s - loss: 0.7480 - accuracy: 0.7735 - val_loss: 0.7858 - val_accuracy: 0.7439
-Epoch 4/30
-123/123 - 8s - loss: 0.6350 - accuracy: 0.7896 - val_loss: 0.6784 - val_accuracy: 0.7846
-Epoch 5/30
-123/123 - 8s - loss: 0.5612 - accuracy: 0.8056 - val_loss: 0.7369 - val_accuracy: 0.7744
-Epoch 6/30
-123/123 - 8s - loss: 0.4885 - accuracy: 0.8224 - val_loss: 0.6657 - val_accuracy: 0.7907
-Epoch 7/30
-123/123 - 8s - loss: 0.4526 - accuracy: 0.8349 - val_loss: 0.6824 - val_accuracy: 0.7724
-Epoch 8/30
-123/123 - 8s - loss: 0.4211 - accuracy: 0.8474 - val_loss: 0.6781 - val_accuracy: 0.7927
-Epoch 9/30
-123/123 - 8s - loss: 0.4004 - accuracy: 0.8527 - val_loss: 0.6860 - val_accuracy: 0.7886
-Epoch 10/30
-123/123 - 8s - loss: 0.4120 - accuracy: 0.8482 - val_loss: 0.7145 - val_accuracy: 0.7846
-Epoch 11/30
-123/123 - 8s - loss: 0.3873 - accuracy: 0.8614 - val_loss: 0.7316 - val_accuracy: 0.7805
-Epoch 12/30
-123/123 - 8s - loss: 0.3959 - accuracy: 0.8530 - val_loss: 0.6602 - val_accuracy: 0.7907
-Epoch 13/30
-123/123 - 8s - loss: 0.3618 - accuracy: 0.8634 - val_loss: 0.7223 - val_accuracy: 0.7724
-Epoch 14/30
-123/123 - 8s - loss: 0.3523 - accuracy: 0.8688 - val_loss: 0.7084 - val_accuracy: 0.7744
-Epoch 15/30
-123/123 - 8s - loss: 0.3723 - accuracy: 0.8652 - val_loss: 0.6707 - val_accuracy: 0.7866
-Epoch 16/30
-123/123 - 8s - loss: 0.3607 - accuracy: 0.8591 - val_loss: 0.6957 - val_accuracy: 0.7866
-Epoch 17/30
-123/123 - 8s - loss: 0.3485 - accuracy: 0.8724 - val_loss: 0.7242 - val_accuracy: 0.7866
-Epoch 18/30
-123/123 - 8s - loss: 0.3697 - accuracy: 0.8652 - val_loss: 0.6885 - val_accuracy: 0.7846
-Epoch 19/30
-123/123 - 8s - loss: 0.3554 - accuracy: 0.8668 - val_loss: 0.6968 - val_accuracy: 0.7846
-Epoch 20/30
-123/123 - 9s - loss: 0.3527 - accuracy: 0.8685 - val_loss: 0.6678 - val_accuracy: 0.7947
-Epoch 21/30
-123/123 - 8s - loss: 0.3619 - accuracy: 0.8685 - val_loss: 0.6502 - val_accuracy: 0.7927
-Epoch 22/30
-123/123 - 8s - loss: 0.3537 - accuracy: 0.8693 - val_loss: 0.6536 - val_accuracy: 0.8028
-Epoch 23/30
-123/123 - 8s - loss: 0.3356 - accuracy: 0.8741 - val_loss: 0.6458 - val_accuracy: 0.7967
-Epoch 24/30
-123/123 - 8s - loss: 0.3519 - accuracy: 0.8655 - val_loss: 0.7342 - val_accuracy: 0.7785
-Epoch 25/30
-123/123 - 8s - loss: 0.3434 - accuracy: 0.8696 - val_loss: 0.7121 - val_accuracy: 0.7805
-Epoch 26/30
-123/123 - 8s - loss: 0.3395 - accuracy: 0.8683 - val_loss: 0.7048 - val_accuracy: 0.7846
-Epoch 27/30
-123/123 - 8s - loss: 0.3342 - accuracy: 0.8759 - val_loss: 0.7536 - val_accuracy: 0.7602
-Epoch 28/30
-123/123 - 9s - loss: 0.3462 - accuracy: 0.8693 - val_loss: 0.6951 - val_accuracy: 0.7744
-Epoch 29/30
-123/123 - 8s - loss: 0.3241 - accuracy: 0.8759 - val_loss: 0.7382 - val_accuracy: 0.7907
-Epoch 30/30
-123/123 - 8s - loss: 0.3257 - accuracy: 0.8759 - val_loss: 0.7209 - val_accuracy: 0.7846
- 1/16 [>.............................] - ETA: 0s - loss: 0.4084 - accuracy: 0.8750 2/16 [==>...........................] - ETA: 0s - loss: 0.6456 - accuracy: 0.7969 3/16 [====>.........................] - ETA: 0s - loss: 0.8871 - accuracy: 0.7396 4/16 [======>.......................] - ETA: 0s - loss: 0.8892 - accuracy: 0.7422 5/16 [========>.....................] - ETA: 0s - loss: 0.9069 - accuracy: 0.7375 6/16 [==========>...................] - ETA: 0s - loss: 0.8520 - accuracy: 0.7552 7/16 [============>.................] - ETA: 0s - loss: 0.8500 - accuracy: 0.7634 8/16 [==============>...............] - ETA: 0s - loss: 0.8869 - accuracy: 0.757810/16 [=================>............] - ETA: 0s - loss: 0.8936 - accuracy: 0.765612/16 [=====================>........] - ETA: 0s - loss: 0.8650 - accuracy: 0.770814/16 [=========================>....] - ETA: 0s - loss: 0.8270 - accuracy: 0.779016/16 [==============================] - ETA: 0s - loss: 0.8369 - accuracy: 0.778016/16 [==============================] - 1s 46ms/step - loss: 0.8369 - accuracy: 0.7780
-0.7780040502548218
-Found 3928 files belonging to 7 classes.
-Found 491 files belonging to 7 classes.
-Found 489 files belonging to 7 classes.
-Number of validation batches: 16
-Number of test batches: 16
-Epoch 1/30
-123/123 - 11s - loss: 1.5990 - accuracy: 0.6296 - val_loss: 1.1130 - val_accuracy: 0.6517
-Epoch 2/30
-123/123 - 8s - loss: 0.9208 - accuracy: 0.7408 - val_loss: 0.9992 - val_accuracy: 0.6986
-Epoch 3/30
-123/123 - 9s - loss: 0.7319 - accuracy: 0.7785 - val_loss: 0.8795 - val_accuracy: 0.7210
-Epoch 4/30
-123/123 - 8s - loss: 0.5875 - accuracy: 0.8078 - val_loss: 0.8592 - val_accuracy: 0.7312
-Epoch 5/30
-123/123 - 8s - loss: 0.5331 - accuracy: 0.8170 - val_loss: 0.9041 - val_accuracy: 0.7291
-Epoch 6/30
-123/123 - 9s - loss: 0.4956 - accuracy: 0.8254 - val_loss: 0.8833 - val_accuracy: 0.7393
-Epoch 7/30
-123/123 - 9s - loss: 0.4277 - accuracy: 0.8536 - val_loss: 0.8729 - val_accuracy: 0.7251
-Epoch 8/30
-123/123 - 8s - loss: 0.4339 - accuracy: 0.8452 - val_loss: 0.8152 - val_accuracy: 0.7413
-Epoch 9/30
-123/123 - 8s - loss: 0.3890 - accuracy: 0.8597 - val_loss: 0.8556 - val_accuracy: 0.7352
-Epoch 10/30
-123/123 - 8s - loss: 0.3937 - accuracy: 0.8602 - val_loss: 0.7993 - val_accuracy: 0.7454
-Epoch 11/30
-123/123 - 8s - loss: 0.3982 - accuracy: 0.8526 - val_loss: 0.8479 - val_accuracy: 0.7413
-Epoch 12/30
-123/123 - 9s - loss: 0.4125 - accuracy: 0.8521 - val_loss: 0.7977 - val_accuracy: 0.7637
-Epoch 13/30
-123/123 - 9s - loss: 0.3919 - accuracy: 0.8541 - val_loss: 0.8614 - val_accuracy: 0.7352
-Epoch 14/30
-123/123 - 8s - loss: 0.3674 - accuracy: 0.8656 - val_loss: 0.8425 - val_accuracy: 0.7597
-Epoch 15/30
-123/123 - 8s - loss: 0.3690 - accuracy: 0.8625 - val_loss: 0.8618 - val_accuracy: 0.7352
-Epoch 16/30
-123/123 - 8s - loss: 0.3586 - accuracy: 0.8691 - val_loss: 0.8911 - val_accuracy: 0.7373
-Epoch 17/30
-123/123 - 8s - loss: 0.3683 - accuracy: 0.8684 - val_loss: 0.8124 - val_accuracy: 0.7495
-Epoch 18/30
-123/123 - 8s - loss: 0.3487 - accuracy: 0.8750 - val_loss: 0.8578 - val_accuracy: 0.7454
-Epoch 19/30
-123/123 - 8s - loss: 0.3341 - accuracy: 0.8844 - val_loss: 0.8595 - val_accuracy: 0.7475
-Epoch 20/30
-123/123 - 9s - loss: 0.3440 - accuracy: 0.8765 - val_loss: 0.9152 - val_accuracy: 0.7332
-Epoch 21/30
-123/123 - 8s - loss: 0.3560 - accuracy: 0.8725 - val_loss: 0.8766 - val_accuracy: 0.7597
-Epoch 22/30
-123/123 - 8s - loss: 0.3543 - accuracy: 0.8661 - val_loss: 0.8945 - val_accuracy: 0.7312
-Epoch 23/30
-123/123 - 8s - loss: 0.3325 - accuracy: 0.8750 - val_loss: 0.8772 - val_accuracy: 0.7413
-Epoch 24/30
-123/123 - 8s - loss: 0.3511 - accuracy: 0.8737 - val_loss: 0.8587 - val_accuracy: 0.7454
-Epoch 25/30
-123/123 - 8s - loss: 0.3215 - accuracy: 0.8814 - val_loss: 0.8990 - val_accuracy: 0.7454
-Epoch 26/30
-123/123 - 8s - loss: 0.3292 - accuracy: 0.8826 - val_loss: 0.9351 - val_accuracy: 0.7413
-Epoch 27/30
-123/123 - 8s - loss: 0.3241 - accuracy: 0.8768 - val_loss: 0.9456 - val_accuracy: 0.7536
-Epoch 28/30
-123/123 - 9s - loss: 0.3377 - accuracy: 0.8753 - val_loss: 0.9523 - val_accuracy: 0.7434
-Epoch 29/30
-123/123 - 8s - loss: 0.3375 - accuracy: 0.8803 - val_loss: 0.9117 - val_accuracy: 0.7352
-Epoch 30/30
-123/123 - 8s - loss: 0.3278 - accuracy: 0.8770 - val_loss: 0.9057 - val_accuracy: 0.7352
- 1/16 [>.............................] - ETA: 0s - loss: 1.4468 - accuracy: 0.6562 2/16 [==>...........................] - ETA: 0s - loss: 1.0971 - accuracy: 0.6875 3/16 [====>.........................] - ETA: 0s - loss: 0.9296 - accuracy: 0.7292 4/16 [======>.......................] - ETA: 0s - loss: 0.8426 - accuracy: 0.7422 5/16 [========>.....................] - ETA: 0s - loss: 0.7905 - accuracy: 0.7500 6/16 [==========>...................] - ETA: 0s - loss: 0.7092 - accuracy: 0.7760 7/16 [============>.................] - ETA: 0s - loss: 0.7234 - accuracy: 0.7812 9/16 [===============>..............] - ETA: 0s - loss: 0.7643 - accuracy: 0.774311/16 [===================>..........] - ETA: 0s - loss: 0.7951 - accuracy: 0.775613/16 [=======================>......] - ETA: 0s - loss: 0.7703 - accuracy: 0.781215/16 [===========================>..] - ETA: 0s - loss: 0.7679 - accuracy: 0.783316/16 [==============================] - ETA: 0s - loss: 0.7798 - accuracy: 0.779116/16 [==============================] - 1s 55ms/step - loss: 0.7798 - accuracy: 0.7791
-0.7791411280632019
-Found 3925 files belonging to 7 classes.
-Found 492 files belonging to 7 classes.
-Found 491 files belonging to 7 classes.
-Number of validation batches: 16
-Number of test batches: 16
-Epoch 1/30
-123/123 - 11s - loss: 1.5443 - accuracy: 0.6239 - val_loss: 1.1053 - val_accuracy: 0.6443
-Epoch 2/30
-123/123 - 8s - loss: 0.8977 - accuracy: 0.7394 - val_loss: 0.7126 - val_accuracy: 0.7683
-Epoch 3/30
-123/123 - 9s - loss: 0.7207 - accuracy: 0.7743 - val_loss: 0.6937 - val_accuracy: 0.7805
-Epoch 4/30
-123/123 - 8s - loss: 0.6128 - accuracy: 0.7918 - val_loss: 0.7169 - val_accuracy: 0.8089
-Epoch 5/30
-123/123 - 8s - loss: 0.5214 - accuracy: 0.8176 - val_loss: 0.6383 - val_accuracy: 0.7805
-Epoch 6/30
-123/123 - 9s - loss: 0.4805 - accuracy: 0.8288 - val_loss: 0.6753 - val_accuracy: 0.7886
-Epoch 7/30
-123/123 - 8s - loss: 0.4625 - accuracy: 0.8339 - val_loss: 0.6844 - val_accuracy: 0.7825
-Epoch 8/30
-123/123 - 8s - loss: 0.4393 - accuracy: 0.8423 - val_loss: 0.6762 - val_accuracy: 0.7744
-Epoch 9/30
-123/123 - 8s - loss: 0.4145 - accuracy: 0.8532 - val_loss: 0.6369 - val_accuracy: 0.7907
-Epoch 10/30
-123/123 - 8s - loss: 0.4040 - accuracy: 0.8512 - val_loss: 0.6883 - val_accuracy: 0.7988
-Epoch 11/30
-123/123 - 8s - loss: 0.3750 - accuracy: 0.8680 - val_loss: 0.6386 - val_accuracy: 0.7805
-Epoch 12/30
-123/123 - 9s - loss: 0.3642 - accuracy: 0.8634 - val_loss: 0.6879 - val_accuracy: 0.7805
-Epoch 13/30
-123/123 - 8s - loss: 0.3953 - accuracy: 0.8499 - val_loss: 0.6277 - val_accuracy: 0.8028
-Epoch 14/30
-123/123 - 8s - loss: 0.3827 - accuracy: 0.8566 - val_loss: 0.6280 - val_accuracy: 0.8028
-Epoch 15/30
-123/123 - 8s - loss: 0.3753 - accuracy: 0.8668 - val_loss: 0.6654 - val_accuracy: 0.7907
-Epoch 16/30
-123/123 - 8s - loss: 0.3481 - accuracy: 0.8698 - val_loss: 0.6625 - val_accuracy: 0.7967
-Epoch 17/30
-123/123 - 8s - loss: 0.3627 - accuracy: 0.8673 - val_loss: 0.6801 - val_accuracy: 0.7805
-Epoch 18/30
-123/123 - 8s - loss: 0.3629 - accuracy: 0.8622 - val_loss: 0.6990 - val_accuracy: 0.7907
-Epoch 19/30
-123/123 - 8s - loss: 0.3375 - accuracy: 0.8716 - val_loss: 0.6696 - val_accuracy: 0.8089
-Epoch 20/30
-123/123 - 9s - loss: 0.3611 - accuracy: 0.8729 - val_loss: 0.7018 - val_accuracy: 0.7785
-Epoch 21/30
-123/123 - 8s - loss: 0.3358 - accuracy: 0.8729 - val_loss: 0.6778 - val_accuracy: 0.7866
-Epoch 22/30
-123/123 - 8s - loss: 0.3504 - accuracy: 0.8668 - val_loss: 0.6818 - val_accuracy: 0.8049
-Epoch 23/30
-123/123 - 8s - loss: 0.3448 - accuracy: 0.8749 - val_loss: 0.6290 - val_accuracy: 0.8110
-Epoch 24/30
-123/123 - 8s - loss: 0.3305 - accuracy: 0.8746 - val_loss: 0.6628 - val_accuracy: 0.8049
-Epoch 25/30
-123/123 - 8s - loss: 0.3230 - accuracy: 0.8797 - val_loss: 0.6588 - val_accuracy: 0.8049
-Epoch 26/30
-123/123 - 8s - loss: 0.3328 - accuracy: 0.8731 - val_loss: 0.6967 - val_accuracy: 0.7886
-Epoch 27/30
-123/123 - 8s - loss: 0.3088 - accuracy: 0.8871 - val_loss: 0.6737 - val_accuracy: 0.8028
-Epoch 28/30
-123/123 - 9s - loss: 0.3569 - accuracy: 0.8706 - val_loss: 0.6780 - val_accuracy: 0.7967
-Epoch 29/30
-123/123 - 8s - loss: 0.3352 - accuracy: 0.8739 - val_loss: 0.7048 - val_accuracy: 0.7988
-Epoch 30/30
-123/123 - 8s - loss: 0.3260 - accuracy: 0.8808 - val_loss: 0.6522 - val_accuracy: 0.8069
- 1/16 [>.............................] - ETA: 0s - loss: 0.7262 - accuracy: 0.7812 2/16 [==>...........................] - ETA: 0s - loss: 0.9306 - accuracy: 0.7500 3/16 [====>.........................] - ETA: 0s - loss: 1.0823 - accuracy: 0.7083 4/16 [======>.......................] - ETA: 0s - loss: 1.0342 - accuracy: 0.7266 5/16 [========>.....................] - ETA: 0s - loss: 0.9087 - accuracy: 0.7375 6/16 [==========>...................] - ETA: 0s - loss: 0.9876 - accuracy: 0.7344 7/16 [============>.................] - ETA: 0s - loss: 0.8982 - accuracy: 0.7545 9/16 [===============>..............] - ETA: 0s - loss: 0.9386 - accuracy: 0.732611/16 [===================>..........] - ETA: 0s - loss: 0.9154 - accuracy: 0.733013/16 [=======================>......] - ETA: 0s - loss: 0.9021 - accuracy: 0.730815/16 [===========================>..] - ETA: 0s - loss: 0.9227 - accuracy: 0.729216/16 [==============================] - 1s 46ms/step - loss: 0.9087 - accuracy: 0.7332
-0.7331975698471069
-Found 3927 files belonging to 7 classes.
-Found 491 files belonging to 7 classes.
-Found 490 files belonging to 7 classes.
-Number of validation batches: 16
-Number of test batches: 16
-Epoch 1/30
-123/123 - 13s - loss: 1.6990 - accuracy: 0.6218 - val_loss: 0.9837 - val_accuracy: 0.6721
-Epoch 2/30
-123/123 - 10s - loss: 0.9155 - accuracy: 0.7507 - val_loss: 0.8896 - val_accuracy: 0.7332
-Epoch 3/30
-123/123 - 8s - loss: 0.7366 - accuracy: 0.7795 - val_loss: 0.8321 - val_accuracy: 0.7495
-Epoch 4/30
-123/123 - 9s - loss: 0.5994 - accuracy: 0.8026 - val_loss: 0.7981 - val_accuracy: 0.7597
-Epoch 5/30
-123/123 - 10s - loss: 0.5017 - accuracy: 0.8228 - val_loss: 0.8150 - val_accuracy: 0.7678
-Epoch 6/30
-123/123 - 10s - loss: 0.5018 - accuracy: 0.8210 - val_loss: 0.7531 - val_accuracy: 0.7678
-Epoch 7/30
-123/123 - 10s - loss: 0.4217 - accuracy: 0.8414 - val_loss: 0.7553 - val_accuracy: 0.7841
-Epoch 8/30
-123/123 - 9s - loss: 0.4319 - accuracy: 0.8536 - val_loss: 0.7652 - val_accuracy: 0.7862
-Epoch 9/30
-123/123 - 9s - loss: 0.4327 - accuracy: 0.8449 - val_loss: 0.7568 - val_accuracy: 0.7841
-Epoch 10/30
-123/123 - 10s - loss: 0.3744 - accuracy: 0.8610 - val_loss: 0.7495 - val_accuracy: 0.7760
-Epoch 11/30
-123/123 - 8s - loss: 0.3837 - accuracy: 0.8625 - val_loss: 0.7983 - val_accuracy: 0.7678
-Epoch 12/30
-123/123 - 8s - loss: 0.4034 - accuracy: 0.8480 - val_loss: 0.7527 - val_accuracy: 0.7923
-Epoch 13/30
-123/123 - 8s - loss: 0.3771 - accuracy: 0.8627 - val_loss: 0.7183 - val_accuracy: 0.7984
-Epoch 14/30
-123/123 - 8s - loss: 0.3468 - accuracy: 0.8714 - val_loss: 0.7442 - val_accuracy: 0.7902
-Epoch 15/30
-123/123 - 8s - loss: 0.3609 - accuracy: 0.8666 - val_loss: 0.7833 - val_accuracy: 0.7800
-Epoch 16/30
-123/123 - 8s - loss: 0.3694 - accuracy: 0.8676 - val_loss: 0.7598 - val_accuracy: 0.7862
-Epoch 17/30
-123/123 - 8s - loss: 0.3664 - accuracy: 0.8650 - val_loss: 0.7639 - val_accuracy: 0.7943
-Epoch 18/30
-123/123 - 9s - loss: 0.3600 - accuracy: 0.8696 - val_loss: 0.7624 - val_accuracy: 0.7963
-Epoch 19/30
-123/123 - 8s - loss: 0.3335 - accuracy: 0.8747 - val_loss: 0.7660 - val_accuracy: 0.7923
-Epoch 20/30
-123/123 - 8s - loss: 0.3383 - accuracy: 0.8768 - val_loss: 0.7968 - val_accuracy: 0.7800
-Epoch 21/30
-123/123 - 8s - loss: 0.3428 - accuracy: 0.8747 - val_loss: 0.8127 - val_accuracy: 0.7739
-Epoch 22/30
-123/123 - 8s - loss: 0.3553 - accuracy: 0.8686 - val_loss: 0.7874 - val_accuracy: 0.7800
-Epoch 23/30
-123/123 - 8s - loss: 0.3346 - accuracy: 0.8742 - val_loss: 0.7885 - val_accuracy: 0.7821
-Epoch 24/30
-123/123 - 8s - loss: 0.3284 - accuracy: 0.8783 - val_loss: 0.7952 - val_accuracy: 0.7943
-Epoch 25/30
-123/123 - 8s - loss: 0.3087 - accuracy: 0.8877 - val_loss: 0.8018 - val_accuracy: 0.7841
-Epoch 26/30
-123/123 - 8s - loss: 0.3384 - accuracy: 0.8704 - val_loss: 0.7418 - val_accuracy: 0.8004
-Epoch 27/30
-123/123 - 8s - loss: 0.3410 - accuracy: 0.8785 - val_loss: 0.7694 - val_accuracy: 0.7780
-Epoch 28/30
-123/123 - 8s - loss: 0.3405 - accuracy: 0.8788 - val_loss: 0.7923 - val_accuracy: 0.8065
-Epoch 29/30
-123/123 - 8s - loss: 0.3248 - accuracy: 0.8806 - val_loss: 0.7704 - val_accuracy: 0.7902
-Epoch 30/30
-123/123 - 8s - loss: 0.3287 - accuracy: 0.8816 - val_loss: 0.8117 - val_accuracy: 0.7841
- 1/16 [>.............................] - ETA: 0s - loss: 1.2521 - accuracy: 0.5938 2/16 [==>...........................] - ETA: 0s - loss: 0.9397 - accuracy: 0.7031 3/16 [====>.........................] - ETA: 0s - loss: 0.7621 - accuracy: 0.7500 4/16 [======>.......................] - ETA: 0s - loss: 0.7635 - accuracy: 0.7812 5/16 [========>.....................] - ETA: 0s - loss: 0.7248 - accuracy: 0.7812 6/16 [==========>...................] - ETA: 0s - loss: 0.7513 - accuracy: 0.7812 7/16 [============>.................] - ETA: 0s - loss: 0.7900 - accuracy: 0.7812 9/16 [===============>..............] - ETA: 0s - loss: 0.7660 - accuracy: 0.798611/16 [===================>..........] - ETA: 0s - loss: 0.7951 - accuracy: 0.781213/16 [=======================>......] - ETA: 0s - loss: 0.8154 - accuracy: 0.771615/16 [===========================>..] - ETA: 0s - loss: 0.8174 - accuracy: 0.762516/16 [==============================] - 1s 46ms/step - loss: 0.8278 - accuracy: 0.7592
-0.7591836452484131
-Found 3925 files belonging to 7 classes.
-Found 492 files belonging to 7 classes.
-Found 491 files belonging to 7 classes.
-Number of validation batches: 16
-Number of test batches: 16
-Epoch 1/30
-123/123 - 10s - loss: 1.5879 - accuracy: 0.6217 - val_loss: 1.0754 - val_accuracy: 0.6687
-Epoch 2/30
-123/123 - 8s - loss: 0.9117 - accuracy: 0.7455 - val_loss: 0.9377 - val_accuracy: 0.7175
-Epoch 3/30
-123/123 - 9s - loss: 0.7038 - accuracy: 0.7852 - val_loss: 0.9642 - val_accuracy: 0.7337
-Epoch 4/30
-123/123 - 8s - loss: 0.6222 - accuracy: 0.7997 - val_loss: 0.8897 - val_accuracy: 0.7419
-Epoch 5/30
-123/123 - 8s - loss: 0.5075 - accuracy: 0.8214 - val_loss: 0.8665 - val_accuracy: 0.7378
-Epoch 6/30
-123/123 - 9s - loss: 0.4963 - accuracy: 0.8239 - val_loss: 0.8574 - val_accuracy: 0.7500
-Epoch 7/30
-123/123 - 8s - loss: 0.4384 - accuracy: 0.8479 - val_loss: 0.8475 - val_accuracy: 0.7439
-Epoch 8/30
-123/123 - 8s - loss: 0.4120 - accuracy: 0.8504 - val_loss: 0.8889 - val_accuracy: 0.7378
-Epoch 9/30
-123/123 - 9s - loss: 0.4135 - accuracy: 0.8487 - val_loss: 0.8709 - val_accuracy: 0.7419
-Epoch 10/30
-123/123 - 8s - loss: 0.4000 - accuracy: 0.8563 - val_loss: 0.8874 - val_accuracy: 0.7398
-Epoch 11/30
-123/123 - 9s - loss: 0.3762 - accuracy: 0.8594 - val_loss: 0.8522 - val_accuracy: 0.7500
-Epoch 12/30
-123/123 - 9s - loss: 0.3754 - accuracy: 0.8617 - val_loss: 0.8566 - val_accuracy: 0.7642
-Epoch 13/30
-123/123 - 8s - loss: 0.3851 - accuracy: 0.8599 - val_loss: 0.9055 - val_accuracy: 0.7561
-Epoch 14/30
-123/123 - 8s - loss: 0.3446 - accuracy: 0.8762 - val_loss: 0.8640 - val_accuracy: 0.7500
-Epoch 15/30
-123/123 - 8s - loss: 0.3637 - accuracy: 0.8696 - val_loss: 0.8815 - val_accuracy: 0.7480
-Epoch 16/30
-123/123 - 8s - loss: 0.3432 - accuracy: 0.8731 - val_loss: 0.9254 - val_accuracy: 0.7581
-Epoch 17/30
-123/123 - 8s - loss: 0.3507 - accuracy: 0.8703 - val_loss: 0.8854 - val_accuracy: 0.7602
-Epoch 18/30
-123/123 - 8s - loss: 0.3308 - accuracy: 0.8762 - val_loss: 0.9258 - val_accuracy: 0.7419
-Epoch 19/30
-123/123 - 8s - loss: 0.3534 - accuracy: 0.8688 - val_loss: 0.8774 - val_accuracy: 0.7500
-Epoch 20/30
-123/123 - 9s - loss: 0.3396 - accuracy: 0.8736 - val_loss: 0.9250 - val_accuracy: 0.7520
-Epoch 21/30
-123/123 - 8s - loss: 0.3438 - accuracy: 0.8678 - val_loss: 0.9089 - val_accuracy: 0.7520
-Epoch 22/30
-123/123 - 8s - loss: 0.3303 - accuracy: 0.8777 - val_loss: 0.8892 - val_accuracy: 0.7378
-Epoch 23/30
-123/123 - 8s - loss: 0.3286 - accuracy: 0.8833 - val_loss: 0.8697 - val_accuracy: 0.7561
-Epoch 24/30
-123/123 - 8s - loss: 0.3303 - accuracy: 0.8746 - val_loss: 0.8917 - val_accuracy: 0.7500
-Epoch 25/30
-123/123 - 8s - loss: 0.3347 - accuracy: 0.8749 - val_loss: 0.9417 - val_accuracy: 0.7500
-Epoch 26/30
-123/123 - 8s - loss: 0.3370 - accuracy: 0.8785 - val_loss: 0.9161 - val_accuracy: 0.7419
-Epoch 27/30
-123/123 - 8s - loss: 0.3252 - accuracy: 0.8790 - val_loss: 0.9320 - val_accuracy: 0.7561
-Epoch 28/30
-123/123 - 9s - loss: 0.3484 - accuracy: 0.8772 - val_loss: 0.9014 - val_accuracy: 0.7520
-Epoch 29/30
-123/123 - 8s - loss: 0.3202 - accuracy: 0.8795 - val_loss: 0.9245 - val_accuracy: 0.7459
-Epoch 30/30
-123/123 - 8s - loss: 0.3212 - accuracy: 0.8831 - val_loss: 0.9333 - val_accuracy: 0.7561
- 1/16 [>.............................] - ETA: 0s - loss: 0.3136 - accuracy: 0.8750 2/16 [==>...........................] - ETA: 0s - loss: 0.5114 - accuracy: 0.7969 3/16 [====>.........................] - ETA: 0s - loss: 0.4887 - accuracy: 0.8125 4/16 [======>.......................] - ETA: 0s - loss: 0.5876 - accuracy: 0.7969 5/16 [========>.....................] - ETA: 0s - loss: 0.6697 - accuracy: 0.7688 6/16 [==========>...................] - ETA: 0s - loss: 0.7281 - accuracy: 0.7760 7/16 [============>.................] - ETA: 0s - loss: 0.7725 - accuracy: 0.7589 8/16 [==============>...............] - ETA: 0s - loss: 0.7934 - accuracy: 0.753910/16 [=================>............] - ETA: 0s - loss: 0.7350 - accuracy: 0.771912/16 [=====================>........] - ETA: 0s - loss: 0.7682 - accuracy: 0.755214/16 [=========================>....] - ETA: 0s - loss: 0.7696 - accuracy: 0.756716/16 [==============================] - ETA: 0s - loss: 0.7631 - accuracy: 0.759716/16 [==============================] - 1s 47ms/step - loss: 0.7631 - accuracy: 0.7597
-0.7596741318702698
-moyenne : 0.7594864964485168
-min : 0.7331975698471069
-max : 0.7791411280632019
-variance : 0.00016297966371254803
-standard deviation  : 0.012766348879477954
