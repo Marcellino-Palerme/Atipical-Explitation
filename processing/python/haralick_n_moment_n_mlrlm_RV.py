@@ -293,6 +293,12 @@ def part_features_dataset(dataset, part, rectoverso):
 
         # if woks with verso
         if rectoverso:
+            id_recto = os.path.basename(dataset[part][RECTO][index])[0:8]
+            id_verso = os.path.basename(dataset[part][VERSO][index])[0:8]
+            # Verify we work with same leaf
+            if id_recto != id_verso:
+                raise Exception('Not same id, recto: ' + id_recto +
+                                ' verso: ' + id_verso)
             features_verso = extract_features(dataset[part][VERSO][index])
 
             # concatenate features of image
