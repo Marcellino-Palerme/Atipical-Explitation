@@ -189,7 +189,7 @@ def run():
     for strucs in its.product(LT_STRUC, repeat=2):
         # define two input of model
         in_models = []
-        for index_struc, struc in strucs:
+        for index_struc, struc in enumerate(strucs):
             # Take all element for model
             info_model = select_struct(struc)
 
