@@ -189,6 +189,7 @@ def run():
     for strucs in its.product(LT_STRUC, repeat=2):
         # define two input of model
         in_models = []
+        inputs = []
         for index_struc, struc in enumerate(strucs):
             # Take all element for model
             info_model = select_struct(struc)
@@ -209,8 +210,8 @@ def run():
 
             # Define the network
             # create parallel models
-            inputs = tf.keras.Input(shape=(img_height, img_width, 3))
-            half_model = info_model['pre'](inputs)
+            inputs.append(tf.keras.Input(shape=(img_height, img_width, 3)))
+            half_model = info_model['pre'](inputs[-1])
             half_model = pre_model(half_model)
             # Rebuild top
             half_model = tf.keras.layers.GlobalAveragePooling2D(name="avg_pool")(half_model)
@@ -230,8 +231,7 @@ def run():
                                             activation='softmax')(concat)
 
 
-        model = tf.keras.Model(inputs=[in_models[0].input,
-                                       in_models[1].input],
+        model = tf.keras.Model(inputs=inputs,
                                outputs=model_final)
 
         # Compile the Network
