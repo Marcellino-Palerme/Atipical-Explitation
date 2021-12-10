@@ -1,202 +1,284 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import os
+import json
+import re
+import argparse
+import time
+import itertools as its
 import tensorflow as tf
 from tensorflow.keras.preprocessing.image import img_to_array
 import numpy as np
-from tools_file import file_list
-from os.path import join
+from tools_file import file_list, create_directory
 from PIL import Image
-from os import listdir, makedirs, rmdir, remove
-from os.path import isfile, join, exists, splitext
-import json
-import sys
-import os
-import re
 
 
-# Take date when have started script
-if len(sys.argv) != 3:
-    raise ValueError('Please provide date and/or structure name.')
-
-MY_DATE = sys.argv[1]
-STRUC = sys.argv[2].upper()
-DIR_OUT = os.path.join(os.path.dirname(__file__),
-                       "report",
-                       MY_DATE + "_tl_atipical_" + STRUC)
-
-
-# Define size of image
-img_height = 224
-img_width = 224
-
-# Define directory where take image
-path = '/home/genouest/inra_umr1349/mpalerme/dataset_atipical'
-symptoms = ['Alt', 'Big', 'Mac', 'Mil', 'Myc', 'Pse', 'Syl']
+##############################################################################
+### Constants
+##############################################################################
+train = "train"
+validation = "validation"
+test = "test"
+label = 'label'
 recto = 'recto'
 verso = 'verso'
+symptoms = ['Alt', 'Big', 'Mac', 'Mil', 'Myc', 'Pse', 'Syl']
+###############################################################################
+### Manage arguments input
+###############################################################################
+def arguments ():
+    """
+    manage input arguments
 
-train_photos_recto = []
-train_photos_verso = []
-train_labels = []
-valid_photos_recto = []
-valid_photos_verso = []
-valid_labels = []
-test_photos_recto = []
-test_photos_verso = []
-test_labels = []
+    Returns
+    -------
+    namespace
 
-# Take all images and labels
-for label, symptom in enumerate(symptoms):
-    for split in ['train', 'validation', 'test']:
-        files_verso = file_list(join(path, split, symptom, verso))
-        files_recto = file_list(join(path, split, symptom, recto))
-        for file_r, file_v in zip(files_recto, files_verso):
-            try:
-                # Read image recto
-                img_rec = Image.open(join(path, split, symptom, recto, file_r))
-                # Read image verso
-                img_ver = Image.open(join(path, split, symptom, verso, file_v))
-            except IOError :
-                continue
-            if split == 'train':
-                # Transform image to array and add array
-                train_photos_recto.append(img_to_array(img_rec))
-                train_photos_verso.append(img_to_array(img_ver))
-                # Add Image's label
-                train_labels.append(label)
-            if split == 'test':
-                # Transform image to array and add array
-                test_photos_recto.append(img_to_array(img_rec))
-                test_photos_verso.append(img_to_array(img_ver))
-                # Add Image's label
-                test_labels.append(label)
-            if split == 'validation':
-                # Transform image to array and add array
-                valid_photos_recto.append(img_to_array(img_rec))
-                valid_photos_verso.append(img_to_array(img_ver))
-                # Add Image's label
-                valid_labels.append(label)
+    """
+    parser = argparse.ArgumentParser()
 
-train_photos_recto = np.array(train_photos_recto)
-train_photos_verso = np.array(train_photos_verso)
-train_labels = np.array(train_labels)
-test_photos_recto = np.array(test_photos_recto)
-test_photos_verso = np.array(test_photos_verso)
-test_labels = np.array(test_labels)
-valid_photos_recto = np.array(valid_photos_recto)
-valid_photos_verso = np.array(valid_photos_verso)
-valid_labels = np.array(valid_labels)
-print(train_photos_recto)
+    # Add argument for source directory
+    parser.add_argument('-i', '--dir_in', type=str, help="source directory",
+                        required=True, dest='dir_in')
+
+    # Add argument for output directory
+    parser.add_argument('-s', '--struct',
+                        help="list of pre-training models used",
+                        default=['B3', 'B4', 'B5', 'B6', 'VGG16'],
+                        dest='lt_struct')
 
 
-# Select structure used
-if re.match(r'^B.$', STRUC):
-    preprocess_input = tf.keras.applications.efficientnet.preprocess_input
-    application = getattr(tf.keras.applications, "EfficientNet" + STRUC)
+    # Take all arguments
+    return parser.parse_args()
 
-if STRUC == "INCEPTV3":
-    preprocess_input = tf.keras.applications.inception_v3.preprocess_input
-    application = tf.keras.applications.InceptionV3
-
-if STRUC == "VGG16":
-    preprocess_input = tf.keras.applications.vgg16.preprocess_input
-    application = tf.keras.applications.VGG16
+##############################################################################
+### Additional function
+##############################################################################
+def select_struct(name_struct):
+    """
 
 
-# Define the process for augmentation data
-data_augmentation_r = tf.keras.Sequential([
-     tf.keras.Input((img_height, img_width, 3)),
-     tf.keras.layers.experimental.preprocessing.Rescaling(1./255),
-     tf.keras.layers.experimental.preprocessing.RandomFlip("horizontal_and_vertical"),
-     tf.keras.layers.experimental.preprocessing.RandomRotation(0.2)])
+    Parameters
+    ----------
+    name_struct : str
+        Name of pre-training model.
 
-data_augmentation_v = tf.keras.Sequential([
-     tf.keras.Input((img_height, img_width, 3)),
-     tf.keras.layers.experimental.preprocessing.Rescaling(1./255),
-     tf.keras.layers.experimental.preprocessing.RandomFlip("horizontal_and_vertical"),
-     tf.keras.layers.experimental.preprocessing.RandomRotation(0.2)])
+    Returns
+    -------
+    None.
 
-# Init the VGG model
-vgg_conv_r = application(weights='imagenet', include_top=False,
-                         input_shape=(img_height, img_width, 3))
-vgg_conv_r._name = "vgg16_r"
+    """
+    # Select structure used
+    if re.match(r'^B.$', name_struct):
+        preprocess_input = tf.keras.applications.efficientnet.preprocess_input
+        application = getattr(tf.keras.applications,
+                              "EfficientNet" + name_struct)
 
-vgg_conv_v = application(weights='imagenet', include_top=False,
-                         input_shape=(img_height, img_width, 3))
-vgg_conv_v._name = "vgg16_v"
+    if name_struct == "INCEPTV3":
+        preprocess_input = tf.keras.applications.inception_v3.preprocess_input
+        application = tf.keras.applications.InceptionV3
 
+    if name_struct == "VGG16":
+        preprocess_input = tf.keras.applications.vgg16.preprocess_input
+        application = tf.keras.applications.VGG16
 
-# Layer of vgg isn't trainable
-vgg_conv_v.trainable = False
-vgg_conv_r.trainable = False
-# Change name to can use twice the same model
-for layer in vgg_conv_r.layers[:]:
-    layer._name = layer._name  + str("_2")
-
-# Define the network
-# create parallel models
-inputs = tf.keras.Input(shape=(img_height, img_width, 3))
-model_verso = preprocess_input(inputs)
-model_verso = vgg_conv_v(model_verso)
-# Rebuild top
-model_verso = tf.keras.layers.GlobalAveragePooling2D(name="avg_pool")(model_verso)
-model_verso = tf.keras.layers.BatchNormalization()(model_verso)
-
-top_dropout_rate = 0.2
-model_verso = tf.keras.layers.Dropout(top_dropout_rate, name="top_dropout")(model_verso)
-
-inputs = tf.keras.Input(shape=(img_height, img_width, 3))
-model_recto = preprocess_input(inputs)
-model_recto = tf.keras.layers.GlobalAveragePooling2D(name="avg_pool_recto")(model_recto)
-model_recto = tf.keras.layers.BatchNormalization()(model_recto)
-
-top_dropout_rate = 0.2
-model_recto = tf.keras.layers.Dropout(top_dropout_rate, name="top_dropout_recto")(model_recto)
-
-concat = tf.keras.layers.concatenate([model_recto,model_verso])
-
-num_classes = len(symptoms)
-model_final = tf.keras.layers.Dense(num_classes, activation='softmax')(concat)
+    return {'pre': preprocess_input, 'app':application}
 
 
-model = tf.keras.Model(inputs=[data_augmentation_r.input,
-                               data_augmentation_v.input],
-                       outputs=model_final)
+def pred_true(model, dataset, prefix):
+    """
 
-"""
-#Callback
-model_checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
-    filepath='/home/genouest/inra_umr1349/mpalerme/model_multi_view_best.hd5',
-    monitor='val_accuracy',
-    mode='max',
-    save_best_only=True)
-"""
-# Compile the Network
-base_learning_rate = 0.001
-model.compile(optimizer=tf.keras.optimizers.Adam(lr=base_learning_rate),
-              loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=False),
-              metrics=['accuracy'])
-print(model.summary())
 
-global logs
+    Parameters
+    ----------
+    model : TYPE
+        DESCRIPTION.
+    dataset : TYPE
+        DESCRIPTION.
+    prefix : str
+        name of dataset
 
-# Training the network
-history = model.fit(
-                    x= [train_photos_recto, train_photos_verso], y=train_labels,
-                    validation_data = ([valid_photos_recto, valid_photos_verso], valid_labels),
-                    epochs=30,
-                    verbose=2,
-                    batch_size=1
-                    )
-"""
-# Save the network
-model.save("/home/genouest/inra_umr1349/mpalerme/model_multi_view_last.hd5")
-"""
-print(model.evaluate([test_photos_recto, test_photos_verso]))
+    Returns
+    -------
+    dictionnary with two keys :
+        - prefix_pred : list of predicted values by model
+        - prefix_true : list of true values
 
-# Save history
-HIST_FILE = os.path.join(DIR_OUT, MY_DATE + "_history.json")
-with open(HIST_FILE, 'w') as file:
-    json.dump(history.history, file)
+    """
+    y_true = []
+    y_pred = []
+    for index, img_recto in enumerate(dataset[prefix][recto]):
+        # Get label of image
+        y_true.append(symptoms[dataset[prefix][label][index]])
 
+        # Take verso image
+        img_verso = dataset[prefix][verso]
+
+        # Predict label of image
+        pred = model.predict([img_recto, img_verso])
+
+        # Take the max of each predition
+        pred_max = np.amax(pred)
+        # Get label of prediction
+        pos = np.where(pred==pred_max)
+        y_pred.append(symptoms[pos[0][0]])
+
+    return {prefix + "_pred" : y_pred, prefix + "_true" : y_true}
+
+##############################################################################
+### Main function
+##############################################################################
+def run():
+    """
+    main function
+
+    Returns
+    -------
+    None.
+
+    """
+    # Take input arguments
+    args = arguments()
+
+    MY_DATE = time.strftime("%Y%m%d_%H%M%S", time.localtime())
+    LT_STRUC = [struc.upper() for struc in args.lt_struct]
+    DIR_OUT = os.path.join(os.path.dirname(__file__),
+                           "report", MY_DATE + "_multi_view")
+
+    create_directory(DIR_OUT)
+
+    # Define size of image
+    img_height = 224
+    img_width = 224
+
+    # Define directory where take image
+    path = os.path.abspath(os.path.expanduser(args.dir_in))
+
+
+    dataset = {part:{recto:[], verso:[], label:[]}\
+               for part in [train, validation, test]}
+
+    # Take all images and labels
+    for part in dataset:
+        for index, symptom in enumerate(symptoms):
+            files_verso = file_list(os.path.join(path, part, symptom, verso))
+            files_recto = file_list(os.path.join(path, part, symptom, recto))
+            for file_r, file_v in zip(files_recto, files_verso):
+                # Verify we have same leaf
+                if file_r[0:8] == file_v[0:8]:
+                    try:
+                        # Read image recto
+                        img_rec = Image.open(os.path.join(path, part, symptom,
+                                                          recto, file_r))
+                        # Read image verso
+                        img_ver = Image.open(os.path.join(path, part, symptom,
+                                                          verso, file_v))
+                    except IOError :
+                        continue
+
+                    dataset[part][recto].append(img_to_array(img_rec))
+                    dataset[part][verso].append(img_to_array(img_ver))
+                    dataset[part][label].append(index)
+
+        dataset[part][recto] = np.array(dataset[part][recto])
+        dataset[part][verso] = np.array(dataset[part][verso])
+        dataset[part][label] = np.array(dataset[part][label])
+
+
+    for strucs in its.product(LT_STRUC, repeat=2):
+        # define two input of model
+        in_models = []
+        for index_struc, struc in strucs:
+            # Take all element for model
+            info_model = select_struct(struc)
+
+            # Init the  model
+            pre_model = info_model['app'](weights='imagenet',
+                                          include_top=False,
+                                          input_shape=(img_height,
+                                                       img_width, 3))
+            pre_model._name = struc + str(index_struc)
+
+
+            # Layer of model isn't trainable
+            pre_model.trainable = False
+            # Change name to can use twice the same model
+            for layer in pre_model.layers[:]:
+                layer._name = layer._name  + str(index_struc)
+
+            # Define the network
+            # create parallel models
+            inputs = tf.keras.Input(shape=(img_height, img_width, 3))
+            half_model = info_model['pre'](inputs)
+            half_model = pre_model(half_model)
+            # Rebuild top
+            half_model = tf.keras.layers.GlobalAveragePooling2D(name="avg_pool")(half_model)
+            half_model = tf.keras.layers.BatchNormalization()(half_model)
+
+            top_dropout_rate = 0.2
+            half_model = tf.keras.layers.Dropout(top_dropout_rate,
+                                                 name="top_dropout")(half_model)
+
+            in_models.append(half_model)
+
+        # Concatenate two input
+        concat = tf.keras.layers.concatenate(in_models)
+
+        num_classes = len(symptoms)
+        model_final = tf.keras.layers.Dense(num_classes,
+                                            activation='softmax')(concat)
+
+
+        model = tf.keras.Model(inputs=[in_models[0].input,
+                                       in_models[1].input],
+                               outputs=model_final)
+
+        # Compile the Network
+        base_learning_rate = 0.001
+        model.compile(optimizer=tf.keras.optimizers.Adam(lr=base_learning_rate),
+                      loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=False),
+                      metrics=['accuracy'])
+        print(model.summary())
+
+        # Training the network
+        history = model.fit(
+                            x=[dataset[train][recto], dataset[train][verso]],
+                            y=dataset[train][label],
+                            validation_data = ([dataset[validation][recto],
+                                                dataset[validation][verso]],
+                                               dataset[validation][label]),
+                            epochs=30,
+                            verbose=2,
+                            batch_size=1
+                            )
+
+        # Create dictionary with pred and true for train/validation/test
+        my_dict = pred_true(model, dataset, test)
+        my_dict.update(pred_true(model, dataset, train))
+        my_dict.update(pred_true(model, dataset, validation))
+
+        # Save dictionary
+        DICT_FILE = os.path.join(DIR_OUT,
+                                 MY_DATE + "_pred_true_"\
+                                         + "_".join(strucs) + ".json")
+        with open(DICT_FILE, 'w') as file:
+            json.dump(my_dict, file)
+
+        # Save history
+        HIST_FILE = os.path.join(DIR_OUT,
+                                 MY_DATE + "_history_" + "_".join(strucs)\
+                                         + ".json")
+        with open(HIST_FILE, 'w') as file:
+            json.dump(history.history, file)
+
+        # Save dataset
+        DATA_NAME = os.path.join(DIR_OUT, MY_DATE + "_dataset_"\
+                                 + "_".join(strucs) + '.json')
+        with open(DATA_NAME, 'wb') as file:
+            json.dump(dataset, file)
+
+
+
+if __name__=='__main__':
+    run()
