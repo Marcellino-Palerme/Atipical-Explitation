@@ -214,12 +214,12 @@ def run():
             half_model = info_model['pre'](inputs[-1])
             half_model = pre_model(half_model)
             # Rebuild top
-            half_model = tf.keras.layers.GlobalAveragePooling2D(name="avg_pool")(half_model)
+            half_model = tf.keras.layers.GlobalAveragePooling2D(name="avg_pool" + str(index_struc))(half_model)
             half_model = tf.keras.layers.BatchNormalization()(half_model)
 
             top_dropout_rate = 0.2
             half_model = tf.keras.layers.Dropout(top_dropout_rate,
-                                                 name="top_dropout")(half_model)
+                                                 name="top_dropout" + str(index_struc))(half_model)
 
             in_models.append(half_model)
 
