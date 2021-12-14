@@ -3,6 +3,7 @@
 
 import os
 import json
+import pickle
 import re
 import argparse
 import time
@@ -86,7 +87,7 @@ def select_struct(name_struct):
     return {'pre': preprocess_input, 'app':application}
 
 
-def pred_true(model, dataset, prefix):
+def pred_true(model, dataset):
     """
 
 
@@ -96,35 +97,31 @@ def pred_true(model, dataset, prefix):
         DESCRIPTION.
     dataset : TYPE
         DESCRIPTION.
-    prefix : str
-        name of dataset
 
     Returns
     -------
-    dictionnary with two keys :
+    dictionnary with two keys by prefix :
         - prefix_pred : list of predicted values by model
         - prefix_true : list of true values
 
     """
-    y_true = []
-    y_pred = []
-    for index, img_recto in enumerate(dataset[prefix][recto]):
-        # Get label of image
-        y_true.append(symptoms[dataset[prefix][label][index]])
-
-        # Take verso image
-        img_verso = dataset[prefix][verso]
+    dic_pred_true = {}
+    for prefix in dataset:
+        # Get labels of image
+        dic_pred_true[prefix + '_true'] = [symptoms[index]\
+                                           for index in dataset[prefix][label]]
 
         # Predict label of image
-        pred = model.predict([img_recto, img_verso])
+        pred = model.predict([dataset[prefix][recto], dataset[prefix][verso]])
 
         # Take the max of each predition
-        pred_max = np.amax(pred)
+        pred_max = np.amax(pred, axis=1)
         # Get label of prediction
-        pos = np.where(pred==pred_max)
-        y_pred.append(symptoms[pos[0][0]])
+        pos = [np.where(vals==my_max)[0][0] for vals, my_max in zip(pred,
+                                                                    pred_max)]
+        dic_pred_true[prefix + '_pred'] = [symptoms[index] for index in pos]
 
-    return {prefix + "_pred" : y_pred, prefix + "_true" : y_true}
+    return dic_pred_true
 
 ##############################################################################
 ### Main function
@@ -249,14 +246,12 @@ def run():
                                                 dataset[validation][verso]],
                                                dataset[validation][label]),
                             epochs=30,
-                            verbose=2,
+                            verbose=0,
                             batch_size=1
                             )
 
         # Create dictionary with pred and true for train/validation/test
-        my_dict = pred_true(model, dataset, test)
-        my_dict.update(pred_true(model, dataset, train))
-        my_dict.update(pred_true(model, dataset, validation))
+        my_dict = pred_true(model, dataset)
 
         # Save dictionary
         DICT_FILE = os.path.join(DIR_OUT,
@@ -274,9 +269,9 @@ def run():
 
         # Save dataset
         DATA_NAME = os.path.join(DIR_OUT, MY_DATE + "_dataset_"\
-                                 + "_".join(strucs) + '.json')
+                                 + "_".join(strucs))
         with open(DATA_NAME, 'wb') as file:
-            json.dump(dataset, file)
+            pickle.dump(dataset, file)
 
 
 
