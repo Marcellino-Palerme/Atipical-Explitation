@@ -73,22 +73,22 @@ def run():
     if len(sys.argv) != 3:
         raise ValueError('Please provide date and/or structure name.')
 
-    MY_DATE = sys.argv[1]
-    STRUC = sys.argv[2].upper()
-    DIR_OUT = os.path.join(os.path.dirname(__file__),
+    cst_my_date = sys.argv[1]
+    cst_struc = sys.argv[2].upper()
+    cst_dir_out = os.path.join(os.path.dirname(__file__),
                            "report",
-                           MY_DATE + "_tl_atipical_XX")
+                           cst_my_date + "_tl_atipical_XX")
 
-    PATH = "/home/genouest/inra_umr1349/mpalerme/dataset_atipical"
-    train_dir = os.path.join(PATH, 'train')
-    validation_dir = os.path.join(PATH, 'validation')
-    test_dir = os.path.join(PATH, 'test')
-    BATCH_SIZE = 32
-    IMG_SIZE = (224, 224)
+    cst_path = "/home/genouest/inra_umr1349/mpalerme/dataset_atipical"
+    train_dir = os.path.join(cst_path, 'train')
+    validation_dir = os.path.join(cst_path, 'validation')
+    test_dir = os.path.join(cst_path, 'test')
+    cst_batch_size = 32
+    cst_img_size = (224, 224)
 
     # Create file contain all image's name used
-    my_file = open(os.path.join(DIR_OUT,
-                                MY_DATE + "_dataset_" + STRUC + ".csv"),
+    my_file = open(os.path.join(cst_dir_out,
+                                cst_my_date + "_dataset_" + cst_struc + ".csv"),
                    "w")
     writer = csv.writer(my_file)
     # Write header
@@ -123,66 +123,63 @@ def run():
     train_dataset = create_dataset(train_dir,
                                    shuffle=True,
                                    seed=74,
-                                   batch_size=BATCH_SIZE,
-                                   image_size=IMG_SIZE)
+                                   batch_size=cst_batch_size,
+                                   image_size=cst_img_size)
 
     validation_dataset = create_dataset(validation_dir,
                                         shuffle=True,
                                         seed=98,
-                                        batch_size=BATCH_SIZE,
-                                        image_size=IMG_SIZE)
+                                        batch_size=cst_batch_size,
+                                        image_size=cst_img_size)
 
     test_dataset = create_dataset(test_dir,
                                   shuffle=True,
                                   seed=45,
-                                  batch_size=BATCH_SIZE,
-                                  image_size=IMG_SIZE)
+                                  batch_size=cst_batch_size,
+                                  image_size=cst_img_size)
 
     # Select structure used
-    if re.match(r'^B.$', STRUC):
+    if re.match(r'^B.$', cst_struc):
         preprocess_input = tf.keras.applications.efficientnet.preprocess_input
-        application = getattr(tf.keras.applications, "EfficientNet" + STRUC)
+        application = getattr(tf.keras.applications, "EfficientNet" + cst_struc)
 
-    if STRUC == "INCEPTV3":
+    if cst_struc == "INCEPTV3":
         preprocess_input = tf.keras.applications.inception_v3.preprocess_input
         application = tf.keras.applications.InceptionV3
 
-    if STRUC == "VGG16":
+    if cst_struc == "VGG16":
         preprocess_input = tf.keras.applications.vgg16.preprocess_input
         application = tf.keras.applications.VGG16
 
 
-    # Create the base model from the pre-trained model MobileNet V2
-    IMG_SHAPE = IMG_SIZE + (3,)
-    base_model = application(input_shape=IMG_SHAPE,
+    # Create the base model from the pre-trained model based on imagenet
+    cst_img_shape = cst_img_size + (3,)
+    base_model = application(input_shape=cst_img_shape,
                              include_top=False,
                              weights='imagenet')
 
+    # Freeze pre-trained model
     base_model.trainable = False
+    for layer in base_model.layers:
+        layer.trainable = False
 
-    nb_classes = len(train_dataset.class_names)
-    prediction_layer = tf.keras.layers.Dense(nb_classes)
 
-
-    inputs = tf.keras.Input(shape=IMG_SHAPE)
-    x = preprocess_input(inputs)
-    x = base_model(x, training=False)
+    # Create model
+    inputs = tf.keras.Input(shape=cst_img_shape)
+    model_proc = preprocess_input(inputs)
+    model_proc = base_model(model_proc, training=False)
 
     # Rebuild top
-    x = tf.keras.layers.GlobalAveragePooling2D(name="avg_pool")(x)
-    x = tf.keras.layers.BatchNormalization()(x)
+    model_proc = tf.keras.layers.GlobalAveragePooling2D()(model_proc)
+    model_proc = tf.keras.layers.Dropout(0.2)(model_proc)
 
-    top_dropout_rate = 0.2
-    x = tf.keras.layers.Dropout(top_dropout_rate, name="top_dropout")(x)
-
-    #x = tf.keras.layers.Flatten()(x)
-    x = tf.keras.layers.Dense(124)(x)
-    outputs = prediction_layer(x)
+    nb_classes = len(train_dataset.class_names)
+    prediction_layer = tf.keras.layers.Dense(nb_classes, activation='softmax')
+    outputs = prediction_layer(model_proc)
     model = tf.keras.Model(inputs, outputs)
 
-    base_learning_rate = 0.001
-    model.compile(optimizer=tf.keras.optimizers.Adam(lr=base_learning_rate),
-                  loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+    model.compile(optimizer=tf.keras.optimizers.Adam(),
+                  loss=tf.keras.losses.SparseCategoricalCrossentropy(),
                   metrics=['accuracy'])
 
     history = model.fit(train_dataset,
@@ -192,8 +189,8 @@ def run():
 
 
     # Save history
-    HIST_FILE = os.path.join(DIR_OUT, MY_DATE + "_history_" + STRUC + ".json")
-    with open(HIST_FILE, 'w') as file:
+    cst_hist_path = os.path.join(cst_dir_out, cst_my_date + "_history_" + cst_struc + ".json")
+    with open(cst_hist_path, 'w') as file:
         json.dump(history.history, file)
 
     # Create dictionary with pred and true for train/validation/test
@@ -202,25 +199,25 @@ def run():
     my_dict.update(pred_true(model, validation_dataset, "val"))
 
     # Save dictionary
-    DICT_FILE = os.path.join(DIR_OUT,
-                             MY_DATE + "_pred_true_" + STRUC + ".json")
-    with open(DICT_FILE, 'w') as file:
+    cst_dict_path = os.path.join(cst_dir_out,
+                             cst_my_date + "_pred_true_" + cst_struc + ".json")
+    with open(cst_dict_path, 'w') as file:
         json.dump(my_dict, file)
 
     # Save model
-    MODEL_NAME = os.path.join(DIR_OUT, MY_DATE + "_" + STRUC)
-    with open(MODEL_NAME, 'wb') as file:
+    cst_model_path = os.path.join(cst_dir_out, cst_my_date + "_" + cst_struc)
+    with open(cst_model_path, 'wb') as file:
         pickle.dump({'model':model}, file)
 
     # Save dataset
-    DATA_NAME = os.path.join(DIR_OUT, MY_DATE + "_test_" + STRUC)
-    with open(DATA_NAME, 'wb') as file:
+    data_name = os.path.join(cst_dir_out, cst_my_date + "_test_" + cst_struc)
+    with open(data_name, 'wb') as file:
         pickle.dump({'test':test_dataset}, file)
-    DATA_NAME = os.path.join(DIR_OUT, MY_DATE + "_train_" + STRUC)
-    with open(DATA_NAME, 'wb') as file:
+    data_name = os.path.join(cst_dir_out, cst_my_date + "_train_" + cst_struc)
+    with open(data_name, 'wb') as file:
         pickle.dump({'train':train_dataset}, file)
-    DATA_NAME = os.path.join(DIR_OUT, MY_DATE + "_val_" + STRUC)
-    with open(DATA_NAME, 'wb') as file:
+    data_name = os.path.join(cst_dir_out, cst_my_date + "_val_" + cst_struc)
+    with open(data_name, 'wb') as file:
         pickle.dump({'validation':validation_dataset}, file)
 
 
