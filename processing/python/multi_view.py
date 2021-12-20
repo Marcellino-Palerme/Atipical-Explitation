@@ -201,22 +201,18 @@ def run():
 
             # Layer of model isn't trainable
             pre_model.trainable = False
-            # Change name to can use twice the same model
+            # Change name to can use twice the same model and freeze
             for layer in pre_model.layers[:]:
                 layer._name = layer._name  + str(index_struc)
+                layer.trainable = False
 
             # Define the network
-            # create parallel models
             inputs.append(tf.keras.Input(shape=(img_height, img_width, 3)))
             half_model = info_model['pre'](inputs[-1])
-            half_model = pre_model(half_model)
+            half_model = pre_model(half_model, training=False)
             # Rebuild top
-            half_model = tf.keras.layers.GlobalAveragePooling2D(name="avg_pool" + str(index_struc))(half_model)
-            half_model = tf.keras.layers.BatchNormalization()(half_model)
-
-            top_dropout_rate = 0.2
-            half_model = tf.keras.layers.Dropout(top_dropout_rate,
-                                                 name="top_dropout" + str(index_struc))(half_model)
+            half_model = tf.keras.layers.GlobalAveragePooling2D()(half_model)
+            half_model = tf.keras.layers.Dropout(0.2)(half_model)
 
             in_models.append(half_model)
 
@@ -236,7 +232,6 @@ def run():
         model.compile(optimizer=tf.keras.optimizers.Adam(lr=base_learning_rate),
                       loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=False),
                       metrics=['accuracy'])
-        print(model.summary())
 
         # Training the network
         history = model.fit(
