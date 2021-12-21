@@ -9,22 +9,21 @@ import argparse
 import time
 import itertools as its
 import tensorflow as tf
-from tensorflow.keras.preprocessing.image import img_to_array
 import numpy as np
-from tools_file import file_list, create_directory
-from PIL import Image
+from tools_file import create_directory
+
 
 
 ##############################################################################
 ### Constants
 ##############################################################################
-train = "train"
-validation = "validation"
-test = "test"
-label = 'label'
-recto = 'recto'
-verso = 'verso'
-symptoms = ['Alt', 'Big', 'Mac', 'Mil', 'Myc', 'Pse', 'Syl']
+cst_train = "train"
+cst_val = "validation"
+cst_test = "test"
+cst_lab = 'label'
+cst_recto = 'recto'
+cst_verso = 'verso'
+cst_symp = ['Alt', 'Big', 'Mac', 'Mil', 'Myc', 'Pse', 'Syl']
 ###############################################################################
 ### Manage arguments input
 ###############################################################################
@@ -40,8 +39,14 @@ def arguments ():
     parser = argparse.ArgumentParser()
 
     # Add argument for source directory
-    parser.add_argument('-i', '--dir_in', type=str, help="source directory",
-                        required=True, dest='dir_in')
+    parser.add_argument('-r', '--dir_rec', type=str,
+                        help="source recto directory",
+                        required=True, dest='dir_rec')
+
+    # Add argument for source directory
+    parser.add_argument('-v', '--dir_ver', type=str,
+                        help="source verso directory",
+                        required=True, dest='dir_ver')
 
     # Add argument for output directory
     parser.add_argument('-s', '--struct',
@@ -86,10 +91,30 @@ def select_struct(name_struct):
 
     return {'pre': preprocess_input, 'app':application}
 
+def extract_label(dataset):
+    """
+    extract label of tensorflow dataset
+
+    Parameters
+    ----------
+    dataset : TYPE
+        DESCRIPTION.
+
+    Returns
+    -------
+    TYPE
+        DESCRIPTION.
+
+    """
+    # Take label
+    temp = dataset.map(lambda img, lab: lab[0])
+    # Create list of label
+    temp = list(temp.as_numpy_iterator())
+    return np.array(cst_symp)[temp]
 
 def pred_true(model, dataset):
     """
-
+    create dictionary with predict and true for tran/test/validation part
 
     Parameters
     ----------
@@ -108,20 +133,19 @@ def pred_true(model, dataset):
     dic_pred_true = {}
     for prefix in dataset:
         # Get labels of image
-        dic_pred_true[prefix + '_true'] = [symptoms[index]\
-                                           for index in dataset[prefix][label]]
-
+        dic_pred_true[prefix + '_true'] = extract_label(dataset[prefix])
         # Predict label of image
-        pred = model.predict([dataset[prefix][recto], dataset[prefix][verso]])
+        pred = model.predict(dataset[prefix])
 
         # Take the max of each predition
         pred_max = np.amax(pred, axis=1)
         # Get label of prediction
         pos = [np.where(vals==my_max)[0][0] for vals, my_max in zip(pred,
                                                                     pred_max)]
-        dic_pred_true[prefix + '_pred'] = [symptoms[index] for index in pos]
+        dic_pred_true[prefix + '_pred'] = [cst_symp[index] for index in pos]
 
     return dic_pred_true
+
 
 ##############################################################################
 ### Main function
@@ -150,37 +174,36 @@ def run():
     img_width = 224
 
     # Define directory where take image
-    path = os.path.abspath(os.path.expanduser(args.dir_in))
+    path_recto = os.path.abspath(os.path.expanduser(args.dir_rec))
+    path_verso = os.path.abspath(os.path.expanduser(args.dir_ver))
 
 
-    dataset = {part:{recto:[], verso:[], label:[]}\
-               for part in [train, validation, test]}
+    dataset = {part:{cst_recto:[], cst_verso:[], cst_lab:[]}\
+               for part in [cst_train, cst_val, cst_test]}
 
+    create_dataset = tf.keras.preprocessing.image_dataset_from_directory
     # Take all images and labels
     for part in dataset:
-        for index, symptom in enumerate(symptoms):
-            files_verso = file_list(os.path.join(path, part, symptom, verso))
-            files_recto = file_list(os.path.join(path, part, symptom, recto))
-            for file_r, file_v in zip(files_recto, files_verso):
-                # Verify we have same leaf
-                if file_r[0:8] == file_v[0:8]:
-                    try:
-                        # Read image recto
-                        img_rec = Image.open(os.path.join(path, part, symptom,
-                                                          recto, file_r))
-                        # Read image verso
-                        img_ver = Image.open(os.path.join(path, part, symptom,
-                                                          verso, file_v))
-                    except IOError :
-                        continue
+        temp_recto = create_dataset(os.path.join(path_recto, part),
+                                    shuffle=False,
+                                    batch_size=1,
+                                    image_size=(224, 224))
+        temp_verso = create_dataset(os.path.join(path_verso, part),
+                                    shuffle=False,
+                                    batch_size=1,
+                                    image_size=(224, 224))
 
-                    dataset[part][recto].append(img_to_array(img_rec))
-                    dataset[part][verso].append(img_to_array(img_ver))
-                    dataset[part][label].append(index)
+        # Verify label names and order
+        if (temp_recto.class_names != cst_symp or
+            extract_label(temp_recto) != extract_label(temp_verso)):
+            raise Exception('Differnce between labels')
 
-        dataset[part][recto] = np.array(dataset[part][recto])
-        dataset[part][verso] = np.array(dataset[part][verso])
-        dataset[part][label] = np.array(dataset[part][label])
+        dataset[part] = tf.data.Dataset.zip((temp_recto,
+                                             temp_verso))
+
+        dataset[part] = dataset[part].map(lambda rec, ver: ({'layer_0':rec[0],
+                                                             'layer_1':ver[0]},
+                                                             rec[1]))
 
 
     for strucs in its.product(LT_STRUC, repeat=2):
@@ -207,7 +230,8 @@ def run():
                 layer.trainable = False
 
             # Define the network
-            inputs.append(tf.keras.Input(shape=(img_height, img_width, 3)))
+            inputs.append(tf.keras.Input(shape=(img_height, img_width, 3),
+                                         name='layer_' + str(index_struc)))
             half_model = info_model['pre'](inputs[-1])
             half_model = pre_model(half_model, training=False)
             # Rebuild top
@@ -219,7 +243,7 @@ def run():
         # Concatenate two input
         concat = tf.keras.layers.concatenate(in_models)
 
-        num_classes = len(symptoms)
+        num_classes = len(cst_symp)
         model_final = tf.keras.layers.Dense(num_classes,
                                             activation='softmax')(concat)
 
@@ -228,23 +252,20 @@ def run():
                                outputs=model_final)
 
         # Compile the Network
-        base_learning_rate = 0.001
-        model.compile(optimizer=tf.keras.optimizers.Adam(lr=base_learning_rate),
-                      loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=False),
+        model.compile(optimizer=tf.keras.optimizers.Adam(),
+                      loss=tf.keras.losses.SparseCategoricalCrossentropy(),
                       metrics=['accuracy'])
 
         # Training the network
         history = model.fit(
-                            x=[dataset[train][recto], dataset[train][verso]],
-                            y=dataset[train][label],
-                            validation_data = ([dataset[validation][recto],
-                                                dataset[validation][verso]],
-                                               dataset[validation][label]),
-                            epochs=30,
-                            verbose=0,
+                            x=dataset[cst_train],
+                            validation_data=dataset[cst_val],
+                            epochs=3,
+                            verbose=1,
                             batch_size=1
                             )
 
+        print(model.evaluate(dataset[cst_test]))
         # Create dictionary with pred and true for train/validation/test
         my_dict = pred_true(model, dataset)
 
