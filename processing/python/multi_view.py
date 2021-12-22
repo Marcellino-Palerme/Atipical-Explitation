@@ -3,8 +3,10 @@
 
 import os
 import json
-import pickle
+# import pickle
 import re
+import csv
+import glob
 import argparse
 import time
 import itertools as its
@@ -17,13 +19,13 @@ from tools_file import create_directory
 ##############################################################################
 ### Constants
 ##############################################################################
-cst_train = "train"
-cst_val = "validation"
-cst_test = "test"
-cst_lab = 'label'
-cst_recto = 'recto'
-cst_verso = 'verso'
-cst_symp = ['Alt', 'Big', 'Mac', 'Mil', 'Myc', 'Pse', 'Syl']
+CST_TRAIN = "train"
+CST_VAL = "validation"
+CST_TEST = "test"
+CST_LAB = 'label'
+CST_RECTO = 'recto'
+CST_VERSO = 'verso'
+CST_SYMP = ['Alt', 'Big', 'Mac', 'Mil', 'Myc', 'Pse', 'Syl']
 ###############################################################################
 ### Manage arguments input
 ###############################################################################
@@ -61,6 +63,43 @@ def arguments ():
 ##############################################################################
 ### Additional function
 ##############################################################################
+def save_dataset(dir_r, dir_v, dir_out):
+    """
+    Create csv with all images names of each part of dataset
+
+    Parameters
+    ----------
+    dir_r : TYPE
+        DESCRIPTION.
+    dir_v : TYPE
+        DESCRIPTION.
+    dir_out : TYPE
+        DESCRIPTION.
+
+    Returns
+    -------
+    None.
+
+    """
+    # Create file contain all image's name used
+    with open(os.path.join(dir_out,"dataset.csv"),
+              "w") as my_file:
+        writer = csv.writer(my_file)
+        # Write header
+        writer.writerow(["part", "filename"])
+
+        for part in [CST_TRAIN, CST_VAL, CST_TEST]:
+            # Write name's part
+            writer.writerow([part])
+            lt_files = []
+            for face in [dir_r, dir_v]:
+                # Take all files
+                lt_files += [os.path.basename(path)\
+                             for path in glob.glob(os.path.join(face, part,
+                                                                "*", "*"))]
+            # Write files of part
+            writer.writerows([["", path] for path in sorted(lt_files)])
+
 def select_struct(name_struct):
     """
 
@@ -110,7 +149,7 @@ def extract_label(dataset):
     temp = dataset.map(lambda img, lab: lab[0])
     # Create list of label
     temp = list(temp.as_numpy_iterator())
-    return list(np.array(cst_symp)[temp])
+    return list(np.array(CST_SYMP)[temp])
 
 def pred_true(model, dataset):
     """
@@ -142,7 +181,7 @@ def pred_true(model, dataset):
         # Get label of prediction
         pos = [np.where(vals==my_max)[0][0] for vals, my_max in zip(pred,
                                                                     pred_max)]
-        dic_pred_true[prefix + '_pred'] = [cst_symp[index] for index in pos]
+        dic_pred_true[prefix + '_pred'] = [CST_SYMP[index] for index in pos]
 
     return dic_pred_true
 
@@ -162,12 +201,12 @@ def run():
     # Take input arguments
     args = arguments()
 
-    MY_DATE = time.strftime("%Y%m%d_%H%M%S", time.localtime())
-    LT_STRUC = [struc.upper() for struc in args.lt_struct]
-    DIR_OUT = os.path.join(os.path.dirname(__file__),
-                           "report", MY_DATE + "_multi_view")
+    cst_date = time.strftime("%Y%m%d_%H%M%S", time.localtime())
+    cst_lt_struct = [struc.upper() for struc in args.lt_struct]
+    cst_dir_out = os.path.join(os.path.dirname(__file__),
+                               "report", cst_date + "_multi_view")
 
-    create_directory(DIR_OUT)
+    create_directory(cst_dir_out)
 
     # Define size of image
     img_height = 224
@@ -177,9 +216,11 @@ def run():
     path_recto = os.path.abspath(os.path.expanduser(args.dir_rec))
     path_verso = os.path.abspath(os.path.expanduser(args.dir_ver))
 
+    # Save Dataset
+    save_dataset(path_recto, path_verso, cst_dir_out)
 
-    dataset = {part:{cst_recto:[], cst_verso:[], cst_lab:[]}\
-               for part in [cst_train, cst_val, cst_test]}
+    dataset = {part:{CST_RECTO:[], CST_VERSO:[], CST_LAB:[]}\
+               for part in [CST_TRAIN, CST_VAL, CST_TEST]}
 
     create_dataset = tf.keras.preprocessing.image_dataset_from_directory
     # Take all images and labels
@@ -194,7 +235,7 @@ def run():
                                     image_size=(224, 224))
 
         # Verify label names and order
-        if ((temp_recto.class_names != cst_symp) or
+        if ((temp_recto.class_names != CST_SYMP) or
             (extract_label(temp_recto) != extract_label(temp_verso))):
             raise Exception('Differnce between labels')
 
@@ -206,7 +247,7 @@ def run():
                                                              rec[1]))
 
 
-    for strucs in its.product(LT_STRUC, repeat=2):
+    for strucs in its.product(cst_lt_struct, repeat=2):
         # define two input of model
         in_models = []
         inputs = []
@@ -243,7 +284,7 @@ def run():
         # Concatenate two input
         concat = tf.keras.layers.concatenate(in_models)
 
-        num_classes = len(cst_symp)
+        num_classes = len(CST_SYMP)
         model_final = tf.keras.layers.Dense(num_classes,
                                             activation='softmax')(concat)
 
@@ -258,35 +299,35 @@ def run():
 
         # Training the network
         history = model.fit(
-                            x=dataset[cst_train],
-                            validation_data=dataset[cst_val],
-                            epochs=1,
+                            x=dataset[CST_TRAIN],
+                            validation_data=dataset[CST_VAL],
+                            epochs=30,
                             verbose=0,
                             batch_size=1
                             )
 
-        print(model.evaluate(dataset[cst_test]))
+        print(model.evaluate(dataset[CST_TEST]))
         # Create dictionary with pred and true for train/validation/test
         my_dict = pred_true(model, dataset)
 
         # Save dictionary
-        DICT_FILE = os.path.join(DIR_OUT,
-                                 MY_DATE + "_pred_true_"\
+        dict_file = os.path.join(cst_dir_out,
+                                 cst_date + "_pred_true_"\
                                          + "_".join(strucs) + ".json")
-        with open(DICT_FILE, 'w') as file:
+        with open(dict_file, 'w') as file:
             json.dump(my_dict, file)
 
         # Save history
-        HIST_FILE = os.path.join(DIR_OUT,
-                                 MY_DATE + "_history_" + "_".join(strucs)\
+        hist_file = os.path.join(cst_dir_out,
+                                 cst_date + "_history_" + "_".join(strucs)\
                                          + ".json")
-        with open(HIST_FILE, 'w') as file:
+        with open(hist_file, 'w') as file:
             json.dump(history.history, file)
 
         """
         # When we can use tensorflow with pickle
         # Save dataset
-        DATA_NAME = os.path.join(DIR_OUT, MY_DATE + "_dataset_"\
+        DATA_NAME = os.path.join(cst_dir_out, cst_date + "_dataset_"\
                                  + "_".join(strucs))
         with open(DATA_NAME, 'wb') as file:
             pickle.dump(dataset, file)
