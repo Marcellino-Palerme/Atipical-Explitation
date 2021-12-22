@@ -7,4 +7,4 @@
 . /softs/local/env/envconda.sh
 conda activate /home/genouest/inra_umr1349/mpalerme/conda
 
-python multi_view.py -i ~/dataset_atipical_rv
+python multi_view.py -r ~/dataset_atipical_r -v ~/dataset_atipical_v

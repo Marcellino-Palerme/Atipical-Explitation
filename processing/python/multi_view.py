@@ -110,7 +110,7 @@ def extract_label(dataset):
     temp = dataset.map(lambda img, lab: lab[0])
     # Create list of label
     temp = list(temp.as_numpy_iterator())
-    return np.array(cst_symp)[temp]
+    return list(np.array(cst_symp)[temp])
 
 def pred_true(model, dataset):
     """
@@ -194,8 +194,8 @@ def run():
                                     image_size=(224, 224))
 
         # Verify label names and order
-        if (temp_recto.class_names != cst_symp or
-            extract_label(temp_recto) != extract_label(temp_verso)):
+        if ((temp_recto.class_names != cst_symp) or
+            (extract_label(temp_recto) != extract_label(temp_verso))):
             raise Exception('Differnce between labels')
 
         dataset[part] = tf.data.Dataset.zip((temp_recto,
@@ -260,8 +260,8 @@ def run():
         history = model.fit(
                             x=dataset[cst_train],
                             validation_data=dataset[cst_val],
-                            epochs=3,
-                            verbose=1,
+                            epochs=1,
+                            verbose=0,
                             batch_size=1
                             )
 
@@ -283,12 +283,14 @@ def run():
         with open(HIST_FILE, 'w') as file:
             json.dump(history.history, file)
 
+        """
+        # When we can use tensorflow with pickle
         # Save dataset
         DATA_NAME = os.path.join(DIR_OUT, MY_DATE + "_dataset_"\
                                  + "_".join(strucs))
         with open(DATA_NAME, 'wb') as file:
             pickle.dump(dataset, file)
-
+        """
 
 
 if __name__=='__main__':
