@@ -219,12 +219,11 @@ def run():
     # Save Dataset
     save_dataset(path_recto, path_verso, cst_dir_out)
 
-    dataset = {part:{CST_RECTO:[], CST_VERSO:[], CST_LAB:[]}\
-               for part in [CST_TRAIN, CST_VAL, CST_TEST]}
+    dataset = {}
 
     create_dataset = tf.keras.preprocessing.image_dataset_from_directory
     # Take all images and labels
-    for part in dataset:
+    for part in [CST_TRAIN, CST_VAL, CST_TEST]:
         temp_recto = create_dataset(os.path.join(path_recto, part),
                                     shuffle=False,
                                     batch_size=1,
