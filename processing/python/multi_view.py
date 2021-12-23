@@ -274,14 +274,15 @@ def run():
                                          name='layer_' + str(index_struc)))
             half_model = info_model['pre'](inputs[-1])
             half_model = pre_model(half_model, training=False)
-            # Rebuild top
-            half_model = tf.keras.layers.GlobalAveragePooling2D()(half_model)
-            half_model = tf.keras.layers.Dropout(0.2)(half_model)
 
+            half_model = tf.keras.layers.GlobalAveragePooling2D()(half_model)
             in_models.append(half_model)
 
         # Concatenate two input
         concat = tf.keras.layers.concatenate(in_models)
+
+        # new top
+        concat = tf.keras.layers.Dropout(0.2)(concat)
 
         num_classes = len(CST_SYMP)
         model_final = tf.keras.layers.Dense(num_classes,
@@ -300,7 +301,7 @@ def run():
         history = model.fit(
                             x=dataset[CST_TRAIN],
                             validation_data=dataset[CST_VAL],
-                            epochs=30,
+                            epochs=3,
                             verbose=0,
                             batch_size=1
                             )
