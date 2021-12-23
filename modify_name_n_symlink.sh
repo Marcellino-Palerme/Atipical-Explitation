@@ -6,9 +6,12 @@
 # Usage: ./modify_name_n_symlink.sh input
 
 # Get all file
-lt_files=$(find -L $1 -type f,l)
+lt_files_0=$(find $1 -type l)
+lt_files_1=$(find $1 -type f)
 
-for file in $lt_files
+lt_files=(${lt_files_0[@]} ${lt_files_1[@]})
+
+for file in "${lt_files[@]}"
 do
    # Modify file name
    new_name=$(echo "$file" | sed -e 's/balanced_[0-99]/balanced/g')
