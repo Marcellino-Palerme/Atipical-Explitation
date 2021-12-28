@@ -12,10 +12,61 @@ import glob
 import csv
 import re
 import json
-import pickle
+#import pickle
 import numpy as np
 import tensorflow as tf
 
+def get_dataset(dir_in, img_size, batch_size, shuffle, seed=None):
+    """
+
+
+    Parameters
+    ----------
+    dir_in : TYPE
+        DESCRIPTION.
+    img_size : TYPE
+        DESCRIPTION.
+    batch_size : TYPE
+        DESCRIPTION.
+    shuffle : TYPE
+        DESCRIPTION.
+    seed : TYPE, optional
+        DESCRIPTION. The default is None.
+
+    Returns
+    -------
+    TYPE
+        DESCRIPTION.
+
+    """
+    create_dataset = tf.keras.preprocessing.image_dataset_from_directory
+    return create_dataset(dir_in,
+                          shuffle=shuffle,
+                          seed=seed,
+                          batch_size=batch_size,
+                          image_size=img_size)
+
+def extract_label(dataset):
+    """
+    extract label of tensorflow dataset
+
+    Parameters
+    ----------
+    dataset : TYPE
+        DESCRIPTION.
+
+    Returns
+    -------
+    TYPE
+        DESCRIPTION.
+
+    """
+    # Take label
+    temp = dataset.map(lambda img, lab: lab)
+    temp = temp.unbatch()
+    # Create list of label
+    temp = list(temp.as_numpy_iterator())
+    return list(np.array(dataset.class_names)[temp])
 
 def pred_true(model, dataset, prefix):
     """
@@ -35,24 +86,26 @@ def pred_true(model, dataset, prefix):
     dictionnary with two keys :
         - prefix_pred : list of predicted values by model
         - prefix_true : list of true values
-
+        - prefix_eval : evaluation from model
+        - prefix_loss: loss from model
     """
-    y_true = []
-    y_pred = []
-    for img, label in dataset.unbatch():
-        # Get label of image
-        y_true.append(dataset.class_names[label])
+    dic_pred_true = {}
+    # Get labels of image
+    dic_pred_true[prefix + '_true'] = extract_label(dataset)
+    # Predict label of image
+    pred = model.predict(dataset)
 
-        # Predict label of image
-        pred = model.predict(img)
+    # Take the max of each predition
+    pred_max = np.amax(pred, axis=1)
+    # Get label of prediction
+    pos = [np.where(vals==my_max)[0][0] for vals, my_max in zip(pred,
+                                                                pred_max)]
+    dic_pred_true[prefix + '_pred'] = [dataset.class_names[index] for index in pos]
+    evalut = model.evaluate(dataset)
+    dic_pred_true[prefix + '_loss'] = evalut[0]
+    dic_pred_true[prefix + '_eval'] = evalut[1]
 
-        # Take the max of each predition
-        pred_max = np.amax(pred)
-        # Get label of prediction
-        pos = np.where(pred==pred_max)
-        y_pred.append(dataset.class_names[pos[0][0]])
-
-    return {prefix + "_pred" : y_pred, prefix + "_true" : y_true}
+    return dic_pred_true
 
 
 def run():
@@ -118,25 +171,16 @@ def run():
     # Close file
     my_file.close()
 
-    create_dataset = tf.keras.preprocessing.image_dataset_from_directory
 
-    train_dataset = create_dataset(train_dir,
-                                   shuffle=True,
-                                   seed=74,
-                                   batch_size=cst_batch_size,
-                                   image_size=cst_img_size)
+    train_dataset = get_dataset(train_dir, cst_img_size, cst_batch_size,
+                                True, 74)
 
-    validation_dataset = create_dataset(validation_dir,
-                                        shuffle=True,
-                                        seed=98,
-                                        batch_size=cst_batch_size,
-                                        image_size=cst_img_size)
+    validation_dataset = get_dataset(validation_dir, cst_img_size,
+                                     cst_batch_size, True, 98)
 
-    test_dataset = create_dataset(test_dir,
-                                  shuffle=True,
-                                  seed=45,
-                                  batch_size=cst_batch_size,
-                                  image_size=cst_img_size)
+    test_dataset = get_dataset(test_dir, cst_img_size, cst_batch_size,
+                               True, 45)
+
 
     # Select structure used
     if re.match(r'^B.$', cst_struc):
@@ -193,6 +237,12 @@ def run():
     with open(cst_hist_path, 'w') as file:
         json.dump(history.history, file)
 
+    train_dataset = get_dataset(train_dir, cst_img_size, 1, False)
+
+    validation_dataset = get_dataset(validation_dir, cst_img_size, 1, False)
+
+    test_dataset = get_dataset(test_dir, cst_img_size, 1, False)
+
     # Create dictionary with pred and true for train/validation/test
     my_dict = pred_true(model, test_dataset, "test")
     my_dict.update(pred_true(model, train_dataset, "train"))
@@ -204,6 +254,8 @@ def run():
     with open(cst_dict_path, 'w') as file:
         json.dump(my_dict, file)
 
+    """
+    For tensorflow > 2.3
     # Save model
     cst_model_path = os.path.join(cst_dir_out, cst_my_date + "_" + cst_struc)
     with open(cst_model_path, 'wb') as file:
@@ -219,7 +271,7 @@ def run():
     data_name = os.path.join(cst_dir_out, cst_my_date + "_val_" + cst_struc)
     with open(data_name, 'wb') as file:
         pickle.dump({'validation':validation_dataset}, file)
-
+    """
 
 if __name__=='__main__':
     run()
