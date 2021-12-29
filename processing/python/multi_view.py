@@ -342,7 +342,7 @@ def run():
         history = model.fit(
                             x=dataset[CST_TRAIN],
                             validation_data=dataset[CST_VAL],
-                            epochs=3,
+                            epochs=30,
                             verbose=0,
                             batch_size=1
                             )
