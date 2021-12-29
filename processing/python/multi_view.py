@@ -100,6 +100,61 @@ def save_dataset(dir_r, dir_v, dir_out):
             # Write files of part
             writer.writerows([["", path] for path in sorted(lt_files)])
 
+
+def get_dataset(dir_r, dir_v, img_size, shuffle, seed=None):
+    """
+
+
+    Parameters
+    ----------
+    dir_r : TYPE
+        DESCRIPTION.
+    dir_v : TYPE
+        DESCRIPTION.
+    img_size : TYPE
+        DESCRIPTION.
+    shuffle : TYPE
+        DESCRIPTION.
+    seed : TYPE, optional
+        DESCRIPTION. The default is None.
+
+    Raises
+    ------
+    Exception
+        DESCRIPTION.
+
+    Returns
+    -------
+    dataset : TYPE
+        DESCRIPTION.
+
+    """
+    create_dataset = tf.keras.preprocessing.image_dataset_from_directory
+    temp_recto = create_dataset(dir_r,
+                                shuffle=shuffle,
+                                batch_size=1,
+                                image_size=img_size,
+                                seed=seed)
+
+    temp_verso = create_dataset(dir_v,
+                                shuffle=shuffle,
+                                batch_size=1,
+                                image_size=img_size,
+                                seed=seed)
+
+    # Verify label names and order
+    if ((temp_recto.class_names != CST_SYMP) or
+        (extract_label(temp_recto) != extract_label(temp_verso))):
+        raise Exception('Differnce between labels')
+
+    dataset = tf.data.Dataset.zip((temp_recto,
+                                   temp_verso))
+
+    dataset = dataset.map(lambda rec, ver: ({'layer_0':rec[0],
+                                             'layer_1':ver[0]},
+                                            rec[1]))
+    return dataset
+
 def select_struct(name_struct):
     """
 
@@ -167,6 +222,8 @@ def pred_true(model, dataset):
     dictionnary with two keys by prefix :
         - prefix_pred : list of predicted values by model
         - prefix_true : list of true values
+        - prefix_eval : evaluation from model
+        - prefix_loss: loss from model
 
     """
     dic_pred_true = {}
@@ -182,6 +239,9 @@ def pred_true(model, dataset):
         pos = [np.where(vals==my_max)[0][0] for vals, my_max in zip(pred,
                                                                     pred_max)]
         dic_pred_true[prefix + '_pred'] = [CST_SYMP[index] for index in pos]
+        evalut = model.evaluate(dataset[prefix])
+        dic_pred_true[prefix + '_loss'] = evalut[0]
+        dic_pred_true[prefix + '_eval'] = evalut[1]
 
     return dic_pred_true
 
@@ -209,8 +269,8 @@ def run():
     create_directory(cst_dir_out)
 
     # Define size of image
-    img_height = 224
-    img_width = 224
+    cst_img_size = (224, 224)
+    cst_img_shape = cst_img_size + (3,)
 
     # Define directory where take image
     path_recto = os.path.abspath(os.path.expanduser(args.dir_rec))
@@ -221,29 +281,11 @@ def run():
 
     dataset = {}
 
-    create_dataset = tf.keras.preprocessing.image_dataset_from_directory
     # Take all images and labels
-    for part in [CST_TRAIN, CST_VAL, CST_TEST]:
-        temp_recto = create_dataset(os.path.join(path_recto, part),
-                                    shuffle=False,
-                                    batch_size=1,
-                                    image_size=(224, 224))
-        temp_verso = create_dataset(os.path.join(path_verso, part),
-                                    shuffle=False,
-                                    batch_size=1,
-                                    image_size=(224, 224))
-
-        # Verify label names and order
-        if ((temp_recto.class_names != CST_SYMP) or
-            (extract_label(temp_recto) != extract_label(temp_verso))):
-            raise Exception('Differnce between labels')
-
-        dataset[part] = tf.data.Dataset.zip((temp_recto,
-                                             temp_verso))
-
-        dataset[part] = dataset[part].map(lambda rec, ver: ({'layer_0':rec[0],
-                                                             'layer_1':ver[0]},
-                                                             rec[1]))
+    for part in [CST_TRAIN, CST_VAL]:
+        dataset[part] = get_dataset(os.path.join(path_recto, part),
+                                    os.path.join(path_verso, part),
+                                    cst_img_size, True, 33)
 
 
     for strucs in its.product(cst_lt_struct, repeat=2):
@@ -257,8 +299,7 @@ def run():
             # Init the  model
             pre_model = info_model['app'](weights='imagenet',
                                           include_top=False,
-                                          input_shape=(img_height,
-                                                       img_width, 3))
+                                          input_shape=cst_img_shape)
             pre_model._name = struc + str(index_struc)
 
 
@@ -270,7 +311,7 @@ def run():
                 layer.trainable = False
 
             # Define the network
-            inputs.append(tf.keras.Input(shape=(img_height, img_width, 3),
+            inputs.append(tf.keras.Input(shape=cst_img_shape,
                                          name='layer_' + str(index_struc)))
             half_model = info_model['pre'](inputs[-1])
             half_model = pre_model(half_model, training=False)
@@ -301,12 +342,18 @@ def run():
         history = model.fit(
                             x=dataset[CST_TRAIN],
                             validation_data=dataset[CST_VAL],
-                            epochs=30,
+                            epochs=3,
                             verbose=0,
                             batch_size=1
                             )
 
-        print(model.evaluate(dataset[CST_TEST]))
+
+        # Take all images and labels
+        for part in [CST_TRAIN, CST_VAL, CST_TEST]:
+            dataset[part] = get_dataset(os.path.join(path_recto, part),
+                                        os.path.join(path_verso, part),
+                                        cst_img_size, False)
+
         # Create dictionary with pred and true for train/validation/test
         my_dict = pred_true(model, dataset)
 
