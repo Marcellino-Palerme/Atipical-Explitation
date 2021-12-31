@@ -434,38 +434,37 @@ def run():
     for part in [CST_TRAIN, CST_VAL]:
         dataset[part] = get_dataset(os.path.join(path_recto, CST_DL, part),
                                     os.path.join(path_verso, CST_DL, part),
-                                    (img_width, img_width), 32, True, 87)
+                                    (img_width, img_height), 32, True, 87)
 
     # Fit all model
-    models = def_n_fit_model(cst_lt_struct, dataset, (img_width, img_width, 3))
+    models = def_n_fit_model(cst_lt_struct, dataset, (img_width, img_height, 3))
 
 
     # TODO : Finish staking part
     # Get dataset for stacking
     dataset = []
     # Take all split
-    lt_split = sorted(os.listdir(os.path.join(dir_r, CST_STACK)))
+    lt_split = sorted(os.listdir(os.path.join(path_recto, CST_STACK)))
     for split in lt_split:
+        dataset.append({})
         for part in [CST_TRAIN, CST_TEST]:
+            dataset[-1].update((get_dataset(os.path.join(path_recto, CST_STACK,
+                                                         split, part),
+                                            os.path.join(path_verso, CST_STACK,
+                                                         split, part),
+                                            (img_width, img_height), 32,
+                                            False)))
 
 
 
 
     for strucs in its.product(cst_lt_struct, repeat=2):
-        # define two input of model
-        in_models = []
-        inputs = []
-        for index_struc, struc in enumerate(strucs):
+        for data in dataset:
+            pre_train_recto = models[strucs[0]][CST_RECTO].predict(data[CST_RECTO])
+            pre_train_verso = models[strucs[1]][CST_VERSO].predict(data[CST_VERSO])
+            # TODO: Get label train + get Test predict and label
+            #       learn stacking + write predict
 
-
-        # Training the network
-        history = model.fit(
-                            x=dataset[CST_TRAIN],
-                            validation_data=dataset[CST_VAL],
-                            epochs=3,
-                            verbose=0,
-                            batch_size=1
-                            )
 
         print(model.evaluate(dataset[CST_TEST]))
         # Create dictionary with pred and true for train/validation/test
