@@ -1,5 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+"""
+    Extraction feature with DL from recto and verso
+    Classification by stacking
+"""
 
 import os
 import json
@@ -196,16 +200,17 @@ def get_dataset(path_recto, path_verso, image_size, batch_size, shuffle,
 
 def select_struct(name_struct):
     """
-
+    Select pre-training model from name
 
     Parameters
     ----------
     name_struct : str
-        Name of pre-training model.
+        pre-training model name.
 
     Returns
     -------
-    None.
+    dict
+        dictionary with preprocess ('pre') and pre-training model ('app') .
 
     """
     # Select structure used
@@ -223,6 +228,7 @@ def select_struct(name_struct):
         application = tf.keras.applications.VGG16
 
     return {'pre': preprocess_input, 'app':application}
+
 
 def extract_label(dataset):
     """
@@ -445,7 +451,26 @@ def get_predict_dataset(lt_struct, models, in_dataset):
 
 
 def stacking_fit_pred(name_recto, name_verso, dataset, out_file):
+    """
+    Do the stacking and predict with k-fold
+    Results save in json file
 
+    Parameters
+    ----------
+    name_recto : str
+        recto model name.
+    name_verso : str
+        verso model name.
+    dataset : list of dictonary
+        All features.
+    out_file : str
+        Path of file to save results.
+
+    Returns
+    -------
+    None.
+
+    """
     result = []
     for data in dataset:
         result.append({})
@@ -471,42 +496,9 @@ def stacking_fit_pred(name_recto, name_verso, dataset, out_file):
     mean = np.mean([acc[CST_TEST + '_eval'] for acc in result])
     print(name_recto + '-' + name_verso + ' : ' + str(mean))
 
-    # TODO: save results
-
-def pred_true(model, dataset):
-    """
-    create dictionary with predict and true for tran/test/validation part
-
-    Parameters
-    ----------
-    model : TYPE
-        DESCRIPTION.
-    dataset : TYPE
-        DESCRIPTION.
-
-    Returns
-    -------
-    dictionnary with two keys by prefix :
-        - prefix_pred : list of predicted values by model
-        - prefix_true : list of true values
-
-    """
-    dic_pred_true = {}
-    for prefix in dataset:
-        # Get labels of image
-        dic_pred_true[prefix + '_true'] = extract_label(dataset[prefix])
-        # Predict label of image
-        pred = model.predict(dataset[prefix])
-
-        # Take the max of each predition
-        pred_max = np.amax(pred, axis=1)
-        # Get label of prediction
-        pos = [np.where(vals==my_max)[0][0] for vals, my_max in zip(pred,
-                                                                    pred_max)]
-        dic_pred_true[prefix + '_pred'] = [CST_SYMP[index] for index in pos]
-
-    return dic_pred_true
-
+    # Save results
+    with open(out_file, 'w') as my_file:
+        json.dump(result, my_file)
 
 ##############################################################################
 ### Main function
@@ -551,8 +543,6 @@ def run():
     # Fit all model
     models = def_n_fit_model(cst_lt_struct, dataset, (img_width, img_height, 3))
 
-
-    # TODO : Finish staking part
     # Get dataset from k-fold split
     dataset = get_split_dataset(path_recto, path_verso, (img_width,
                                                          img_height))
@@ -560,42 +550,17 @@ def run():
     # Get predict dataset from model
     dataset = get_predict_dataset(cst_lt_struct, models, dataset)
 
-            # TODO: Get label train + get Test predict and label
-            #       learn stacking + write predict
     # Save feature data predict
     out_path = os.path.join(cst_dir_out, cst_date + "_feature_pred.json")
     with open(out_path, 'w') as out_file:
         json.dump(dataset, out_file)
 
-    for strucs in its.product(cst_lt_struct, repeat=2):
-
-        print(model.evaluate(dataset[CST_TEST]))
-        # Create dictionary with pred and true for train/validation/test
-        my_dict = pred_true(model, dataset)
-
-        # Save dictionary
-        dict_file = os.path.join(cst_dir_out,
-                                 cst_date + "_pred_true_"\
-                                         + "_".join(strucs) + ".json")
-        with open(dict_file, 'w') as file:
-            json.dump(my_dict, file)
-
-        # Save history
-        hist_file = os.path.join(cst_dir_out,
-                                 cst_date + "_history_" + "_".join(strucs)\
-                                         + ".json")
-        with open(hist_file, 'w') as file:
-            json.dump(history.history, file)
-
-        """
-        # When we can use tensorflow with pickle
-        # Save dataset
-        DATA_NAME = os.path.join(cst_dir_out, cst_date + "_dataset_"\
-                                 + "_".join(strucs))
-        with open(DATA_NAME, 'wb') as file:
-            pickle.dump(dataset, file)
-        """
-
+    # Stacking with all combinasons
+    for struct_r, struct_v in its.product(cst_lt_struct, repeat=2):
+        out_file = os.path.join(cst_dir_out,
+                                cst_date + "_pred_true_"\
+                                         + struct_r + "_" + struct_v + ".json")
+        stacking_fit_pred(struct_r, struct_v, dataset, out_file)
 
 if __name__=='__main__':
     run()
