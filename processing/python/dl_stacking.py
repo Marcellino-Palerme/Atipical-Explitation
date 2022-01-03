@@ -12,6 +12,7 @@ import time
 import itertools as its
 import tensorflow as tf
 import numpy as np
+import sklearn.ensemble as ens
 from tools_file import create_directory
 
 
@@ -262,7 +263,7 @@ def def_model(struct, img_shape):
 
     """
     # Take all element for model
-    info_model = select_struct(struc)
+    info_model = select_struct(struct)
 
     # Init the  model
     pre_model = info_model['app'](weights='imagenet',
@@ -361,6 +362,117 @@ def def_n_fit_model(lt_struct, dataset, img_shape):
     return models
 
 
+def get_split_dataset(path_recto, path_verso, img_size):
+    """
+    Get data from k-fold split
+
+    Parameters
+    ----------
+    path_recto : str
+        path of recto directory.
+    path_verso : str
+        path of verso directory.
+    img_size : tupple of int
+        image size (width, height).
+
+    Returns
+    -------
+    dataset : list of dictionary
+        One case by split. In each case, there is a dictionary.
+        dictionary = {'train':{'recto':tensor, 'verso':tensor},
+                      'test':{'recto':tensor, 'verso':tensor}}
+
+    """
+
+    dataset = []
+    # Take all split
+    lt_split = sorted(os.listdir(os.path.join(path_recto, CST_STACK)))
+    for split in lt_split:
+        dataset.append({})
+        for part in [CST_TRAIN, CST_TEST]:
+            dataset[-1][part].update((get_dataset(os.path.join(path_recto,
+                                                               CST_STACK,
+                                                               split, part),
+                                                  os.path.join(path_verso,
+                                                               CST_STACK,
+                                                               split, part),
+                                                  img_size, 32,False)))
+
+    return dataset
+
+def get_predict_dataset(lt_struct, models, in_dataset):
+    """
+    Get predict value from training models
+
+    Parameters
+    ----------
+    lt_struct : list of str
+        Name of training models.
+    models : dictionary of training keras models
+        DESCRIPTION.
+    in_dataset : list of dictionary
+        all images (tensor) of k-fold split.
+
+    Returns
+    -------
+    temp : list of dictionary
+        One case by split. In each case, there is a dictionary.
+        {'label':{'train':[labels], 'test':[labels]},
+         'Model_Name': {'train':{'recto':[predicts], 'verso':[predicts]},
+                        'test':{'recto':[predicts], 'verso':[predicts]}},
+         ...}
+
+    """
+
+    temp = []
+    for data in in_dataset:
+        temp.append({})
+        # extract true label
+        temp[-1][CST_LAB] = {CST_TRAIN:extract_label(data[CST_TRAIN]
+                                                         [CST_VERSO]),
+                             CST_TEST:extract_label(data[CST_TEST]
+                                                        [CST_VERSO])}
+        for struct in lt_struct:
+            temp[-1][struct]={}
+            for part in [CST_TRAIN, CST_TEST]:
+                temp[-1][struct][part]={}
+                for index, face in enumerate([CST_RECTO, CST_VERSO]):
+                    # Get predict
+                    temp[-1][struct][part][face] = models[struct[index]][face].\
+                                                          predict(data[part][face])
+
+    return temp
+
+
+def stacking_fit_pred(name_recto, name_verso, dataset, out_file):
+
+    result = []
+    for data in dataset:
+        result.append({})
+        feature = {}
+        for part in [CST_TRAIN, CST_TEST]:
+            # Concatenate recto and verso features
+            feature[part] = np.concatenate((data[name_recto][part][CST_RECTO],
+                                            data[name_verso][part][CST_VERSO]))
+            # Save true values
+            result[-1][part + '_true'] = data[CST_LAB][part]
+
+        # Fit classifier
+        clf = ens.GradientBoostingClassifier().fit(feature[CST_TRAIN],
+                                                   data[CST_LAB][CST_TRAIN])
+
+        # Predict
+        for part in [CST_TRAIN, CST_TEST]:
+            result[-1][part + '_pred'] = clf.predict(feature[part])
+            result[-1][part + '_eval'] = clf.score(feature[part],
+                                                   result[-1][part + '_true'])
+
+    # Calculate global acc
+    mean = np.mean([acc[CST_TEST + '_eval'] for acc in result])
+    print(name_recto + '-' + name_verso + ' : ' + str(mean))
+
+    # TODO: save results
+
 def pred_true(model, dataset):
     """
     create dictionary with predict and true for tran/test/validation part
@@ -441,30 +553,21 @@ def run():
 
 
     # TODO : Finish staking part
-    # Get dataset for stacking
-    dataset = []
-    # Take all split
-    lt_split = sorted(os.listdir(os.path.join(path_recto, CST_STACK)))
-    for split in lt_split:
-        dataset.append({})
-        for part in [CST_TRAIN, CST_TEST]:
-            dataset[-1].update((get_dataset(os.path.join(path_recto, CST_STACK,
-                                                         split, part),
-                                            os.path.join(path_verso, CST_STACK,
-                                                         split, part),
-                                            (img_width, img_height), 32,
-                                            False)))
+    # Get dataset from k-fold split
+    dataset = get_split_dataset(path_recto, path_verso, (img_width,
+                                                         img_height))
 
+    # Get predict dataset from model
+    dataset = get_predict_dataset(cst_lt_struct, models, dataset)
 
-
-
-    for strucs in its.product(cst_lt_struct, repeat=2):
-        for data in dataset:
-            pre_train_recto = models[strucs[0]][CST_RECTO].predict(data[CST_RECTO])
-            pre_train_verso = models[strucs[1]][CST_VERSO].predict(data[CST_VERSO])
             # TODO: Get label train + get Test predict and label
             #       learn stacking + write predict
+    # Save feature data predict
+    out_path = os.path.join(cst_dir_out, cst_date + "_feature_pred.json")
+    with open(out_path, 'w') as out_file:
+        json.dump(dataset, out_file)
 
+    for strucs in its.product(cst_lt_struct, repeat=2):
 
         print(model.evaluate(dataset[CST_TEST]))
         # Create dictionary with pred and true for train/validation/test
