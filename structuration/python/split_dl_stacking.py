@@ -35,7 +35,7 @@ import argparse
 import os.path as op
 import glob
 from os import symlink
-from sklearn.model_selection import StratifiedKFold
+import sklearn.model_selection as ms
 import tools_file as tf
 import numpy as np
 
@@ -49,46 +49,77 @@ TRAIN = "train"
 TEST = "test"
 CST_DL = "dl"
 CST_STACK = "stacking"
-CST_TRAIN = "train"
-CST_VAL = "validation"
+VAL = "validation"
+LAB = "label"
 
 
 ##############################################################################
 ### Additional function
 ##############################################################################
-def create_directory_split(path, nb_split, rectoverso):
+def create_struct_dir(path, nb_split):
     """
-    Create all directory save kfold split
+    create directory structure for spliting
 
     Parameters
     ----------
     path : str
-        Path of directory where save splits.
+        path where create struct.
     nb_split : int
-        Number of split.
-    rectoverso : bool
-        work with verso.
+        Number of split for stacking part.
+
     Returns
     -------
     None.
 
     """
-
     # Take absolue path
-    abs_path = op.abspath(path)
+    abs_path = op.abspath(op.expanduser(path))
+    dl_path = op.join(abs_path, CST_DL)
+    stack_path = op.join(abs_path, CST_STACK)
 
-    # Create all split directory
-    for index in range(nb_split):
-        for symptom in LT_CLASS:
-            tf.create_directory(op.join(abs_path, str(index), TRAIN, symptom,
-                                        RECTO))
-            tf.create_directory(op.join(abs_path, str(index), TEST, symptom,
-                                        RECTO))
-            if rectoverso:
-                tf.create_directory(op.join(abs_path, str(index), TRAIN,
-                                            symptom, VERSO))
-                tf.create_directory(op.join(abs_path, str(index), TEST,
-                                            symptom, VERSO))
+    for sympt in LT_CLASS:
+        # Create directory of deep learning part
+        for part in [TRAIN, VAL]:
+            tf.create_directory(op.join(dl_path, part, sympt))
+
+        # Create directory of stacking part
+        for split in range(nb_split):
+            for part in [TRAIN, TEST]:
+                tf.create_directory(op.join(stack_path, str(split), part,
+                                            sympt))
+
+def fit_directory(dir_out, face, dataset, lt_index):
+    """
+    Add symbolic link in directory
+
+    Parameters
+    ----------
+    dir_out : str
+        path of part to fill.
+    face : str
+        recto or verso
+    dataset : dictionary of list
+        path and symptom of all images.
+    lt_index : list of int
+        index of image keep to fill the directory.
+
+    Returns
+    -------
+    None.
+
+    """
+    # Take absolue path
+    abs_path = op.abspath(op.expanduser(dir_out))
+    for index in lt_index:
+        # Get name of symptom
+        sympt = dataset[LAB][index]
+        # Get path of origin image
+        img_path = dataset[face][index]
+        # Extract name of image
+        img_name = op.basename(img_path)
+        # Create symbolic link
+        symlink(img_path, op.join(abs_path, sympt, img_name))
+
 
 ##############################################################################
 ### Function to verify argument input
@@ -153,7 +184,7 @@ def arguments ():
                         default=0.6, dest='train', action=PercentAction)
 
     # Add argument for proportion of image for validation deep learning
-    parser.add_argument('-v', '--validation',
+    parser.add_argument('-c', '--validation',
                         help="proportion of image for validation deep learning",
                         default=0.1, dest='val', action=PercentAction)
 
@@ -184,110 +215,74 @@ def run():
     if (args.train + args.val) >= 1 :
         raise Exception("Proportion's sum of train and validation is higher than 1")
 
+    # Calculate proportion for stacking
+    pp_stack = 1-args.train-args.val
+
     # Get absolu path of input directory
     abs_input = op.abspath(op.expanduser(args.dir_in))
 
-    # Get number of recto image
-    nb_recto = len(glob.glob(op.join(abs_input, '*', '**', "*ecto*.*"),
-                             recursive=True))
+    # Create list of all images
+    all_img = {RECTO:[], VERSO:[], LAB:[]}
+    for sympt in LT_CLASS:
+        # Get recto image
+        lt_recto = sorted(glob.glob(op.join(abs_input, sympt, '**', "*ecto*.*"),
+                                            recursive=True))
+        # Get verso image
+        lt_verso = sorted(glob.glob(op.join(abs_input, sympt, '**', "*erso*.*"),
+                                            recursive=True))
+        # Verify same number of images
+        if len(lt_recto)!=len(lt_verso):
+            raise Exception('Number of recto and verso different')
 
-    # Verify stay enough image for split
-    if np.around((nb_recto*(1-args.train-args.val)) / args.split) < 1:
-        raise Exception('Zero image for test of stacking')
+        # Get number of recto image
+        nb_recto = len(lt_recto)
 
-    # TODO : implemented Train/Validation/Split
+        # Verify stay enough image for split
+        if np.around((nb_recto*(pp_stack)) / args.split) < 1:
+            raise Exception('Zero image for test of stacking for ' + sympt)
 
+        all_img[RECTO] += lt_recto
+        all_img[VERSO] += lt_verso
+        all_img[LAB] += [sympt] * nb_recto
 
-    abs_output = op.abspath(op.expanduser(args.dir_out))
+    # Get absolu path of output recto directory
+    abs_recto = op.abspath(op.expanduser(args.dir_rec))
+    # Get absolu path of output verso directory
+    abs_verso = op.abspath(op.expanduser(args.dir_ver))
 
-    # Create output directory
-    create_directory_split(abs_output, args.nb_split, args.rv)
+    # Create directory struct
+    create_struct_dir(abs_recto, args.split)
+    create_struct_dir(abs_verso, args.split)
 
+    # Define Train and valid
+    spl = ms.StratifiedShuffleSplit(1, train_size=args.train,
+                                    test_size=args.val)
+    train_val = list(spl.split(all_img[RECTO], all_img[LAB]))[0]
 
-    ###########################################################################
-    ### Create dataset
-    ### Dataset contain name of each image and number of symptom of image
-    ###########################################################################
+    for index, part in enumerate([TRAIN, VAL]):
+        fit_directory(op.join(abs_recto, CST_DL, part), RECTO, all_img,
+                      train_val[index])
+        fit_directory(op.join(abs_verso, CST_DL, part), VERSO, all_img,
+                      train_val[index])
 
-    d_dataset = {RECTO :[], "symptom" : []}
+    # Define stacking
+    # Keep all index not use in train and validation
+    dl_index = np.concatenate((train_val[0], train_val[1]))
+    stack_index = set(list(range(len(all_img[RECTO])))).difference(dl_index)
+    stack_index = list(stack_index)
+    stack_sympt = np.array(all_img[LAB])[stack_index]
 
-    # Work with verso too
-    if args.rv:
-        d_dataset[VERSO] = []
+    # Define k-fold for stacking
+    spl = ms.StratifiedKFold(args.split)
+    for split, train_test in enumerate(spl.split(stack_index, stack_sympt)):
+        for index, part in enumerate([TRAIN, TEST]):
+            fit_directory(op.join(abs_recto, CST_STACK, str(split), part),
+                          RECTO, all_img,
+                          np.array(stack_index)[train_test[index]])
+            fit_directory(op.join(abs_verso, CST_STACK, str(split), part),
+                          VERSO, all_img,
+                          np.array(stack_index)[train_test[index]])
 
-    for index, symptom in enumerate(LT_CLASS):
-        # Take all recto image name
-        lt_name = sorted(glob.glob(op.join(abs_input, symptom, '**',
-                                           "*ecto*.*"),
-                                   recursive=True))
-
-        # Add recto to dataset
-        d_dataset[RECTO] = d_dataset[RECTO] + lt_name
-
-        # Work with verso
-        if args.rv:
-            # Take all verso image name
-            lt_name = sorted(glob.glob(op.join(abs_input, symptom, '**',
-                                               "*erso*.*"),
-                                       recursive=True))
-
-            # Add verso to dataset
-            d_dataset[VERSO] = d_dataset[VERSO] + lt_name
-
-        # indicate the symptom index
-        d_dataset["symptom"] = d_dataset["symptom"] +\
-                               list(np.ones(len(lt_name), np.int8) * index)
-
-
-    ###########################################################################
-    ### Split dataset with Kfold
-    ###########################################################################
-
-    # Define number of split
-    skf = StratifiedKFold(n_splits=args.nb_split, shuffle=True)
-
-    for index_split, train_test_index in enumerate(skf.split(d_dataset[RECTO],
-                                                             d_dataset['symptom'])
-                                                   ):
-        index_split = str(index_split)
-
-        for index in train_test_index[0]:
-            # Take symptom name
-            symptom = LT_CLASS[d_dataset["symptom"][index]]
-            # Take image name
-            image_name = op.basename(d_dataset[RECTO][index])
-            # Create symbolic link in train part of output directory
-            symlink(d_dataset[RECTO][index], op.join(abs_output,index_split,
-                                                     TRAIN, symptom, RECTO,
-                                                     image_name))
-            # if work with verso
-            if args.rv:
-                # Take image name
-                image_name = op.basename(d_dataset[VERSO][index])
-                # Create symbolic link in train part of output directory
-                symlink(d_dataset[VERSO][index], op.join(abs_output,
-                                                         index_split,
-                                                         TRAIN, symptom,
-                                                         VERSO, image_name))
-
-        for index in train_test_index[1]:
-            # Take symptom name
-            symptom = LT_CLASS[d_dataset["symptom"][index]]
-            # Take image name
-            image_name = op.basename(d_dataset[RECTO][index])
-            # Create symbolic link in train part of output directory
-            symlink(d_dataset[RECTO][index], op.join(abs_output,index_split,
-                                                     TEST, symptom, RECTO,
-                                                     image_name))
-            # if work with verso
-            if args.rv:
-                # Take image name
-                image_name = op.basename(d_dataset[VERSO][index])
-                # Create symbolic link in train part of output directory
-                symlink(d_dataset[VERSO][index], op.join(abs_output,
-                                                         index_split,
-                                                         TEST, symptom, VERSO,
-                                                         image_name))
 
 if __name__=='__main__':
     run()

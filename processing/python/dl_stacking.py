@@ -60,9 +60,9 @@ def arguments ():
 
     # Add argument for output directory
     parser.add_argument('-s', '--struct',
-                        help="list of pre-training models used",
+                        help="list of pre-training models used", nargs="+",
                         default=['B3', 'B4', 'B5', 'B6', 'VGG16'],
-                        dest='lt_struct')
+                        dest='lt_struct', type=str)
 
 
     # Take all arguments
@@ -138,7 +138,7 @@ def save_dataset(dir_r, dir_v, dir_out):
         for split in lt_split:
             for part in [CST_TRAIN, CST_TEST]:
                 # Write name's part
-                writer.writerow([CST_STACK + '_' + part])
+                writer.writerow([CST_STACK + '_' + split + '_' + part])
                 # Write files
                 write_files(writer,
                             os.path.join(dir_r, CST_STACK, split, part),
@@ -229,7 +229,7 @@ def select_struct(name_struct):
 
     return {'pre': preprocess_input, 'app':application}
 
-
+# TODO : a revoir -> ne renvoie qu'un label
 def extract_label(dataset):
     """
     extract label of tensorflow dataset
@@ -327,7 +327,7 @@ def fit_model(model, dataset_train, dataset_val):
     history = model.fit(x=dataset_train,
                         validation_data=dataset_val,
                         epochs=3,
-                        verbose=0)
+                        verbose=2)
 
     return [model, history]
 
@@ -396,6 +396,7 @@ def get_split_dataset(path_recto, path_verso, img_size):
     for split in lt_split:
         dataset.append({})
         for part in [CST_TRAIN, CST_TEST]:
+            dataset[-1][part] = {}
             dataset[-1][part].update((get_dataset(os.path.join(path_recto,
                                                                CST_STACK,
                                                                split, part),
@@ -442,10 +443,10 @@ def get_predict_dataset(lt_struct, models, in_dataset):
             temp[-1][struct]={}
             for part in [CST_TRAIN, CST_TEST]:
                 temp[-1][struct][part]={}
-                for index, face in enumerate([CST_RECTO, CST_VERSO]):
+                for face in [CST_RECTO, CST_VERSO]:
                     # Get predict
-                    temp[-1][struct][part][face] = models[struct[index]][face].\
-                                                          predict(data[part][face])
+                    results = models[struct][face].predict(data[part][face])
+                    temp[-1][struct][part][face] = results.tolist()
 
     return temp
 
@@ -488,7 +489,7 @@ def stacking_fit_pred(name_recto, name_verso, dataset, out_file):
 
         # Predict
         for part in [CST_TRAIN, CST_TEST]:
-            result[-1][part + '_pred'] = clf.predict(feature[part])
+            result[-1][part + '_pred'] = clf.predict(feature[part]).tolist()
             result[-1][part + '_eval'] = clf.score(feature[part],
                                                    result[-1][part + '_true'])
 
@@ -518,7 +519,7 @@ def run():
     cst_date = time.strftime("%Y%m%d_%H%M%S", time.localtime())
     cst_lt_struct = [struc.upper() for struc in args.lt_struct]
     cst_dir_out = os.path.join(os.path.dirname(__file__),
-                               "report", cst_date + "_multi_view")
+                               "report", cst_date + "_dl_stacking")
 
     create_directory(cst_dir_out)
 
