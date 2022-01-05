@@ -229,7 +229,7 @@ def select_struct(name_struct):
 
     return {'pre': preprocess_input, 'app':application}
 
-# TODO : a revoir -> ne renvoie qu'un label
+
 def extract_label(dataset):
     """
     extract label of tensorflow dataset
@@ -241,15 +241,15 @@ def extract_label(dataset):
 
     Returns
     -------
-    TYPE
-        DESCRIPTION.
+    list
+        list of symptoms.
 
     """
-    # Take label
-    temp = dataset.map(lambda img, lab: lab[0])
-    # Create list of label
-    temp = list(temp.as_numpy_iterator())
-    return list(np.array(CST_SYMP)[temp])
+    labels = []
+    for data in dataset.unbatch():
+        labels.append(CST_SYMP[data[1]])
+
+    return labels
 
 def def_model(struct, img_shape):
     """
@@ -326,8 +326,8 @@ def fit_model(model, dataset_train, dataset_val):
     """
     history = model.fit(x=dataset_train,
                         validation_data=dataset_val,
-                        epochs=3,
-                        verbose=2)
+                        epochs=30,
+                        verbose=0)
 
     return [model, history]
 
@@ -479,7 +479,8 @@ def stacking_fit_pred(name_recto, name_verso, dataset, out_file):
         for part in [CST_TRAIN, CST_TEST]:
             # Concatenate recto and verso features
             feature[part] = np.concatenate((data[name_recto][part][CST_RECTO],
-                                            data[name_verso][part][CST_VERSO]))
+                                            data[name_verso][part][CST_VERSO]),
+                                           axis=1)
             # Save true values
             result[-1][part + '_true'] = data[CST_LAB][part]
 
