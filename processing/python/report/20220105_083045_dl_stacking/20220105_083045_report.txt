@@ -1,0 +1,87 @@
+2022-01-05 08:30:12.362520: I tensorflow/stream_executor/platform/default/dso_loader.cc:48] Successfully opened dynamic library libcudart.so.10.1
+2022-01-05 08:33:35.665766: I tensorflow/stream_executor/platform/default/dso_loader.cc:48] Successfully opened dynamic library libcuda.so.1
+2022-01-05 08:33:39.567632: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1716] Found device 0 with properties: 
+pciBusID: 0000:1a:00.0 name: Tesla V100-SXM2-16GB computeCapability: 7.0
+coreClock: 1.53GHz coreCount: 80 deviceMemorySize: 15.78GiB deviceMemoryBandwidth: 836.37GiB/s
+2022-01-05 08:33:39.567680: I tensorflow/stream_executor/platform/default/dso_loader.cc:48] Successfully opened dynamic library libcudart.so.10.1
+2022-01-05 08:33:39.810191: I tensorflow/stream_executor/platform/default/dso_loader.cc:48] Successfully opened dynamic library libcublas.so.10
+2022-01-05 08:33:39.932186: I tensorflow/stream_executor/platform/default/dso_loader.cc:48] Successfully opened dynamic library libcufft.so.10
+2022-01-05 08:33:40.040610: I tensorflow/stream_executor/platform/default/dso_loader.cc:48] Successfully opened dynamic library libcurand.so.10
+2022-01-05 08:33:40.161677: I tensorflow/stream_executor/platform/default/dso_loader.cc:48] Successfully opened dynamic library libcusolver.so.10
+2022-01-05 08:33:40.238144: I tensorflow/stream_executor/platform/default/dso_loader.cc:48] Successfully opened dynamic library libcusparse.so.10
+2022-01-05 08:33:40.758417: I tensorflow/stream_executor/platform/default/dso_loader.cc:48] Successfully opened dynamic library libcudnn.so.7
+2022-01-05 08:33:40.759913: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1858] Adding visible gpu devices: 0
+2022-01-05 08:33:40.760479: I tensorflow/core/platform/cpu_feature_guard.cc:142] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN)to use the following CPU instructions in performance-critical operations:  AVX2 AVX512F FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2022-01-05 08:33:40.769716: I tensorflow/core/platform/profile_utils/cpu_utils.cc:104] CPU Frequency: 2200000000 Hz
+2022-01-05 08:33:40.769854: I tensorflow/compiler/xla/service/service.cc:168] XLA service 0x55e8e28dded0 initialized for platform Host (this does not guarantee that XLA will be used). Devices:
+2022-01-05 08:33:40.769870: I tensorflow/compiler/xla/service/service.cc:176]   StreamExecutor device (0): Host, Default Version
+2022-01-05 08:33:40.935444: I tensorflow/compiler/xla/service/service.cc:168] XLA service 0x55e8e20d43a0 initialized for platform CUDA (this does not guarantee that XLA will be used). Devices:
+2022-01-05 08:33:40.935480: I tensorflow/compiler/xla/service/service.cc:176]   StreamExecutor device (0): Tesla V100-SXM2-16GB, Compute Capability 7.0
+2022-01-05 08:33:40.940873: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1716] Found device 0 with properties: 
+pciBusID: 0000:1a:00.0 name: Tesla V100-SXM2-16GB computeCapability: 7.0
+coreClock: 1.53GHz coreCount: 80 deviceMemorySize: 15.78GiB deviceMemoryBandwidth: 836.37GiB/s
+2022-01-05 08:33:40.940924: I tensorflow/stream_executor/platform/default/dso_loader.cc:48] Successfully opened dynamic library libcudart.so.10.1
+2022-01-05 08:33:40.940963: I tensorflow/stream_executor/platform/default/dso_loader.cc:48] Successfully opened dynamic library libcublas.so.10
+2022-01-05 08:33:40.940977: I tensorflow/stream_executor/platform/default/dso_loader.cc:48] Successfully opened dynamic library libcufft.so.10
+2022-01-05 08:33:40.940991: I tensorflow/stream_executor/platform/default/dso_loader.cc:48] Successfully opened dynamic library libcurand.so.10
+2022-01-05 08:33:40.941014: I tensorflow/stream_executor/platform/default/dso_loader.cc:48] Successfully opened dynamic library libcusolver.so.10
+2022-01-05 08:33:40.941028: I tensorflow/stream_executor/platform/default/dso_loader.cc:48] Successfully opened dynamic library libcusparse.so.10
+2022-01-05 08:33:40.941042: I tensorflow/stream_executor/platform/default/dso_loader.cc:48] Successfully opened dynamic library libcudnn.so.7
+2022-01-05 08:33:40.942473: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1858] Adding visible gpu devices: 0
+2022-01-05 08:33:40.942506: I tensorflow/stream_executor/platform/default/dso_loader.cc:48] Successfully opened dynamic library libcudart.so.10.1
+2022-01-05 08:33:42.645449: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1257] Device interconnect StreamExecutor with strength 1 edge matrix:
+2022-01-05 08:33:42.645674: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1263]      0 
+2022-01-05 08:33:42.645688: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1276] 0:   N 
+2022-01-05 08:33:42.647341: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1402] Created TensorFlow device (/job:localhost/replica:0/task:0/device:GPU:0 with 14763 MB memory) -> physical GPU (device: 0, name: Tesla V100-SXM2-16GB, pci bus id: 0000:1a:00.0, compute capability: 7.0)
+2022-01-05 08:48:17.886361: I tensorflow/stream_executor/platform/default/dso_loader.cc:48] Successfully opened dynamic library libcublas.so.10
+2022-01-05 08:48:18.856132: I tensorflow/stream_executor/platform/default/dso_loader.cc:48] Successfully opened dynamic library libcudnn.so.7
+Found 14724 files belonging to 7 classes.
+Found 14724 files belonging to 7 classes.
+Found 2454 files belonging to 7 classes.
+Found 2454 files belonging to 7 classes.
+Found 5889 files belonging to 7 classes.
+Found 5889 files belonging to 7 classes.
+Found 1473 files belonging to 7 classes.
+Found 1473 files belonging to 7 classes.
+Found 5889 files belonging to 7 classes.
+Found 5889 files belonging to 7 classes.
+Found 1473 files belonging to 7 classes.
+Found 1473 files belonging to 7 classes.
+Found 5890 files belonging to 7 classes.
+Found 5890 files belonging to 7 classes.
+Found 1472 files belonging to 7 classes.
+Found 1472 files belonging to 7 classes.
+Found 5890 files belonging to 7 classes.
+Found 5890 files belonging to 7 classes.
+Found 1472 files belonging to 7 classes.
+Found 1472 files belonging to 7 classes.
+Found 5890 files belonging to 7 classes.
+Found 5890 files belonging to 7 classes.
+Found 1472 files belonging to 7 classes.
+Found 1472 files belonging to 7 classes.
+B3-B3 : 0.9009777443253932
+B3-B4 : 0.8977179816405443
+B3-B5 : 0.9008435350807285
+B3-B6 : 0.8996204322736799
+B3-VGG16 : 0.8920140426222734
+B4-B3 : 0.8985319999114496
+B4-B4 : 0.8888878435018743
+B4-B5 : 0.8954087524720327
+B4-B6 : 0.8950006825762271
+B4-VGG16 : 0.8841333311195726
+B5-B3 : 0.8998916179639304
+B5-B4 : 0.8926919146078692
+B5-B5 : 0.8952725139466926
+B5-B6 : 0.8983968682664777
+B5-VGG16 : 0.8844066383305291
+B6-B3 : 0.8983975139466926
+B6-B4 : 0.9005721649104166
+B6-B5 : 0.9001641872546415
+B6-B6 : 0.8978552348062221
+B6-VGG16 : 0.8852229626022019
+VGG16-B3 : 0.8865816582543757
+VGG16-B4 : 0.8791094778476343
+VGG16-B5 : 0.8868515525841968
+VGG16-B6 : 0.8861722969981404
+VGG16-VGG16 : 0.8603647355293841
