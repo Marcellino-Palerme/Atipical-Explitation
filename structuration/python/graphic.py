@@ -106,7 +106,7 @@ def write_value(lt_yr, lt_yrv, ax_bar):
 
 def graph_compare_ml(dic_acc_r, dic_acc_rv, title_r, title_rv, out_file):
     """
-    Create graphic to compare recto and rectoverso in machine learning
+    Create bar graphic to compare recto and rectoverso in machine learning
 
     Parameters
     ----------
@@ -151,7 +151,7 @@ def graph_compare_ml(dic_acc_r, dic_acc_rv, title_r, title_rv, out_file):
 
 def graph_compare_dl(dic_acc_r, dic_acc_rv, out_file):
     """
-    Create graphic to compare recto and rectoverso in deep learning
+    Create bar graphic to compare recto and rectoverso in deep learning
 
     Parameters
     ----------
@@ -193,7 +193,7 @@ def graph_compare_dl(dic_acc_r, dic_acc_rv, out_file):
     # Create dataframe
     df_acc = pd.DataFrame(dic_temp)
     # Create plotbar from dataframe
-    ax_bar = df_acc.set_index('impl').plot.bar(ylim=(0,1))
+    ax_bar = df_acc.set_index('impl').plot.bar(ylim=(0,1), width=0.9)
     # Delete x label
     plt.xlabel('')
     lt_rv =[dic_temp[key] for key in dic_temp if key not in ('impl', 'recto')]
@@ -205,6 +205,91 @@ def graph_compare_dl(dic_acc_r, dic_acc_rv, out_file):
     plt.tight_layout()
     # Save plot in file
     plt.savefig(out_file)
+
+def graph_box_ml(dic_acc_r, dic_acc_rv, title_r, title_rv, out_file):
+    """
+    Create box graphic to compare recto and rectoverso in machine learning
+
+    Parameters
+    ----------
+    dic_acc_r : TYPE
+        DESCRIPTION.
+    dic_acc_rv : TYPE
+        DESCRIPTION.
+    title_r : TYPE
+        DESCRIPTION.
+    title_rv : TYPE
+        DESCRIPTION.
+    out_file : TYPE
+        DESCRIPTION.
+
+    Returns
+    -------
+    None.
+
+    """
+    # Create dataframe
+    df_acc = pd.DataFrame()
+
+    # Take all implementation
+    for impl in sorted(dic_acc_r.keys()):
+        # Take all iteration acc of recto
+        df_acc[impl + '_recto'] = np.array(dic_acc_r[impl]["iter"]).\
+                                          astype(float)
+        # Take all iteration acc of recto verso
+        df_acc[impl + '_rectoverso'] = np.array(dic_acc_rv[impl]["iter"]).\
+                                               astype(float)
+
+    # Create plotbar from dataframe
+    df_acc.plot.box()
+    # Put vertical x values
+    plt.xticks(rotation=90)
+    # Delete x label
+    plt.xlabel('')
+    # Auto-adjust
+    plt.tight_layout()
+    # Save plot in file
+    plt.savefig(out_file)
+
+def graph_box_dl(dic_acc_r, dic_acc_rv, out_file):
+    """
+    Create box graphic to compare recto and rectoverso in deep learning
+
+    Parameters
+    ----------
+    dic_acc_r : TYPE
+        DESCRIPTION.
+    dic_acc_rv : TYPE
+        DESCRIPTION.
+    out_file : TYPE
+        DESCRIPTION.
+
+    Returns
+    -------
+    None.
+
+    """
+    # Take all implementation
+    lt_impl_r = sorted(dic_acc_r.keys())
+
+    for index, recto in enumerate(lt_impl_r):
+        # Create dataframe
+        df_acc = pd.DataFrame()
+        for verso in lt_impl_r:
+            r_v = recto + '_' + verso
+            # Take all iteration acc of recto verso
+            df_acc[r_v] = np.array(dic_acc_rv[r_v]['iter']).astype(float)
+        # Plot DataFrame
+        df_acc.plot.box()
+        # Add line of recto
+        plt.axhline(float(dic_acc_r[recto]["iter"][0]), color='red',
+                    ls='dotted')
+        # Auto-adjust
+        plt.tight_layout()
+
+        # Save plot in file
+        plt.savefig(out_file.replace('.', '_' + recto + '.'))
+
 
 ###############################################################################
 ### main function
@@ -230,14 +315,19 @@ def run():
         dic_acc = json.load(fjson)
 
     graph_compare_ml(dic_acc['mlr'], dic_acc['mlrv'], 'ML recto',
-                     'ML rectoverso', op.join(abs_dout, 'Compare_Acc_ML.jpg'))
+                     'ML rectoverso', op.join(abs_dout, 'Compare_Acc_ML.png'))
+
+    graph_box_ml(dic_acc['mlr'], dic_acc['mlrv'], 'ML recto', 'ML rectoverso',
+                 op.join(abs_dout, 'Box_Acc_ML.png'))
 
     graph_compare_dl(dic_acc['dlr'], dic_acc['dlrv'],
-                     op.join(abs_dout, 'Compare_Acc_DL_mv.jpg'))
+                     op.join(abs_dout, 'Compare_Acc_DL_mv.png'))
 
     graph_compare_dl(dic_acc['dlr'], dic_acc['stack'],
-                     op.join(abs_dout, 'Compare_Acc_DL_stack.jpg'))
+                     op.join(abs_dout, 'Compare_Acc_DL_stack.png'))
 
+    graph_box_dl(dic_acc['dlr'], dic_acc['stack'],
+                 op.join(abs_dout, 'Box_Acc_DL_stack.png'))
 
 if __name__ == "__main__":
     run()
