@@ -170,25 +170,17 @@ def graph_compare_dl(dic_acc_r, dic_acc_rv, out_file):
     # Take all implementation
     lt_impl_r = sorted(dic_acc_r.keys())
     # Take all global acc of recto
-    lt_r = [float(dic_acc_r[key]["iter"][0]) for key in lt_impl_r]
+    lt_r = [float(dic_acc_r[key]["global"]) for key in lt_impl_r]
 
 
     dic_temp = {'impl':lt_impl_r, 'recto': lt_r}
-
-    # Verify if there is a global Acc
-    # Case where there is on iteration
-    if dic_acc_rv[lt_impl_r[0] + '_' + lt_impl_r[0]]["global"] is None:
-        glob_iter = '["iter"][0]'
-    else:
-        glob_iter = '["global"]'
 
     for verso in lt_impl_r:
         dic_temp[verso] = []
         for recto in lt_impl_r:
             r_v = recto + '_' + verso
             # Take all global acc of recto verso
-            temp = eval("dic_acc_rv[r_v]" + glob_iter)
-            dic_temp[verso].append(float(temp))
+            dic_temp[verso].append(float(dic_acc_rv[r_v]["global"]))
 
     # Create dataframe
     df_acc = pd.DataFrame(dic_temp)
@@ -282,7 +274,7 @@ def graph_box_dl(dic_acc_r, dic_acc_rv, out_file):
         # Plot DataFrame
         df_acc.plot.box()
         # Add line of recto
-        plt.axhline(float(dic_acc_r[recto]["iter"][0]), color='red',
+        plt.axhline(float(dic_acc_r[recto]["global"]), color='red',
                     ls='dotted')
         # Auto-adjust
         plt.tight_layout()
@@ -290,7 +282,105 @@ def graph_box_dl(dic_acc_r, dic_acc_rv, out_file):
         # Save plot in file
         plt.savefig(out_file.replace('.', '_' + recto + '.'))
 
+def graph_diff_acc_ml(dic_acc_r, dic_acc_rv, out_file):
+    """
+    Create line graphic to show diff between global acc and symptom acc
+    in machine learning
 
+    Parameters
+    ----------
+    dic_acc_r : TYPE
+        DESCRIPTION.
+    dic_acc_rv : TYPE
+        DESCRIPTION.
+    out_file : TYPE
+        DESCRIPTION.
+
+    Returns
+    -------
+    None.
+
+    """
+    # Take all implementation
+    lt_impl_r = sorted(dic_acc_r.keys())
+    lt_impl_rv = [impl + '_rv' for impl in lt_impl_r]
+    # Take list of symptom
+    lt_sympt = [sympt for sympt in sorted(dic_acc_r[lt_impl_r[0]].keys())
+                      if len(sympt)==3]
+
+    dc_acc = {'impl':sorted(lt_impl_r + lt_impl_rv)}
+    for sympt in lt_sympt:
+        dc_acc[sympt]=[]
+        for impl in lt_impl_r:
+            dc_acc[sympt].append(float(dic_acc_r[impl][sympt]["global"]) -
+                                 float(dic_acc_r[impl]["global"]))
+            dc_acc[sympt].append(float(dic_acc_rv[impl][sympt]["global"]) -
+                                 float(dic_acc_rv[impl]["global"]))
+
+    # Create dataframe
+    df_acc = pd.DataFrame(dc_acc)
+    # Create plotbar from dataframe
+    df_acc.set_index('impl').plot.line(xlabel=dc_acc['impl'])
+    # Put vertical x values
+    plt.xticks(rotation=90)
+    # Delete x label
+    plt.xlabel('')
+    # Put legend out of plot
+    plt.legend(bbox_to_anchor = (1.05, 0.6))
+    # Auto-adjust
+    plt.tight_layout()
+    # Save plot in file
+    plt.savefig(out_file)
+
+def graph_diff_acc_dl(dic_acc_r, dic_acc_rv, out_file):
+    """
+    Create line graphic to show diff between global acc and symptom acc
+    in deep learning
+
+    Parameters
+    ----------
+    dic_acc_r : TYPE
+        DESCRIPTION.
+    dic_acc_rv : TYPE
+        DESCRIPTION.
+    out_file : TYPE
+        DESCRIPTION.
+
+    Returns
+    -------
+    None.
+
+    """
+    dic_fusion = dic_acc_r.copy()
+    dic_fusion.update(dic_acc_rv)
+
+    dc_acc = {'impl':sorted(dic_fusion.keys())}
+
+    # Take list of symptom
+    lt_sympt = [sympt for sympt in sorted(dic_acc_r[dc_acc['impl'][0]].keys())
+                      if len(sympt)==3]
+
+
+    for sympt in lt_sympt:
+        dc_acc[sympt]=[]
+        for impl in dc_acc['impl']:
+            dc_acc[sympt].append(float(dic_fusion[impl][sympt]["global"]) -
+                                 float(dic_fusion[impl]["global"]))
+
+    # Create dataframe
+    df_acc = pd.DataFrame(dc_acc)
+    # Create plotbar from dataframe
+    df_acc.set_index('impl').plot.line()
+    # Put vertical x values
+    plt.xticks(rotation=90, size='small')
+    # Delete x label
+    plt.xlabel('')
+    # Put legend out of plot
+    plt.legend(bbox_to_anchor = (1.05, 0.6))
+    # Auto-adjust
+    plt.tight_layout()
+    # Save plot in file
+    plt.savefig(out_file)
 ###############################################################################
 ### main function
 ###############################################################################
@@ -320,14 +410,23 @@ def run():
     graph_box_ml(dic_acc['mlr'], dic_acc['mlrv'], 'ML recto', 'ML rectoverso',
                  op.join(abs_dout, 'Box_Acc_ML.png'))
 
+    graph_diff_acc_ml(dic_acc['mlr'], dic_acc['mlrv'],
+                      op.join(abs_dout, 'Diff_Acc_ML.png'))
+
     graph_compare_dl(dic_acc['dlr'], dic_acc['dlrv'],
                      op.join(abs_dout, 'Compare_Acc_DL_mv.png'))
+
+    graph_diff_acc_dl(dic_acc['dlr'], dic_acc['dlrv'],
+                      op.join(abs_dout, 'Diff_Acc_DL_mv.png'))
 
     graph_compare_dl(dic_acc['dlr'], dic_acc['stack'],
                      op.join(abs_dout, 'Compare_Acc_DL_stack.png'))
 
     graph_box_dl(dic_acc['dlr'], dic_acc['stack'],
                  op.join(abs_dout, 'Box_Acc_DL_stack.png'))
+
+    graph_diff_acc_dl(dic_acc['dlr'], dic_acc['stack'],
+                      op.join(abs_dout, 'Diff_Acc_DL_stack.png'))
 
 if __name__ == "__main__":
     run()

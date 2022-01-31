@@ -52,7 +52,7 @@ def arguments ():
                         help="input Stacking recto-verso csv file path",
                         required=True, dest='stack')
 
-    # Add argument for source directory
+    # Add argument for output file path
     parser.add_argument('-o', '--out', type=str,
                         help="output path file",
                         required=True, dest='fout')
@@ -85,16 +85,25 @@ def extract_acc(in_path):
         reader = csv.reader(fcsv)
         dic = {}
         acc_global = False
+        acc_global_sympt = False
         impl = ""
+        one_block = False
         for row in reader:
             # Identify in witch section we are
             if len(row)==1:
                 if row[0] == "Result global":
                     acc_global = True
+                    acc_global_sympt =True
+                    one_block = False
+                elif one_block and "Confusion" in row[0]:
+                    acc_global = True
+                    acc_global_sympt =True
+                    one_block = False
                 elif not("Iteration_" in row[0] or "Confusion" in row[0]):
                     # Witch  implementation used
                     impl = row[0]
                     dic[impl] = {'iter':[], 'global':None}
+                    one_block = True
             # Take Acc
             if len(row)==2:
                 if acc_global:
@@ -102,6 +111,17 @@ def extract_acc(in_path):
                     acc_global = False
                 else:
                     dic[impl]['iter'].append(row[1])
+            # Take Acc by symptom
+            if len(row)==5 and row[0]not in ['', 'macro avg', 'weighted avg']:
+                if not row[0] in dic[impl]:
+                    dic[impl][row[0]] = {'global':None, 'iter':[]}
+                if acc_global_sympt:
+                    dic[impl][row[0]]['global'] = row[1]
+                else:
+                    dic[impl][row[0]]['iter'].append(row[1])
+            if len(row)==5 and row[0] in ['macro avg']:
+                acc_global_sympt = False
+
 
     return dic
 
