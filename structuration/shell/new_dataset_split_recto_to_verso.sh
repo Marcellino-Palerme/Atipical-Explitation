@@ -37,6 +37,7 @@ do
              im_verso_name=$(echo "$image_name" | sed -e "s/Recto/Verso/g")
              # Take path of image
              path=$(dirname "$image_path")
+             path=$(echo "$path" | sed -e "s/recto/verso/g")
              # Create symbolic link for verso image
              ln -s "$path/$im_verso_name" "$2/$split/$part/$class/$dir_verso"
           done

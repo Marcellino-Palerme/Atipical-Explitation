@@ -5,9 +5,13 @@
    Warning: I work with images containing a black background
 '''
 import argparse
-import mahotas as mh
-import glob, os
+import multiprocessing as mp
+import copy
+import pickle
+import glob
+import os
 import numpy as np
+import mahotas as mh
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
 from sklearn.svm import SVC
@@ -15,29 +19,17 @@ from sklearn.tree import DecisionTreeClassifier
 from skimage import io
 import SimpleITK as sitk
 from radiomics.glrlm import RadiomicsGLRLM
-import multiprocessing as mp
-import copy
-import pickle
 import tools_file as tsf
 
 ##############################################################################
 ### Constants
 ##############################################################################
 LT_CLASS = ["Alt", "Big", "Mac", "Mil", "Myc", "Pse", "Syl"]
-RECTO = "recto"
-VERSO = "verso"
+lt_face = ["recto", "verso"]
+lt_regex = ['*ecto*.*', '*erso*.*']
 TRAIN = "train"
 TEST = "test"
 SYMPTOM = 'symptom'
-
-# Alt = '/home/port-mpalerme/Documents/Atipical/Traitement/photos/Alt_bdb_cut2_max'
-# Big = '/home/port-mpalerme/Documents/Atipical/Traitement/photos/Big_bdb_cut2_max'
-# Mac = '/home/port-mpalerme/Documents/Atipical/Traitement/photos/Mac_bdb_cut2_max'
-# Mil = '/home/port-mpalerme/Documents/Atipical/Traitement/photos/Mil_bdb_cut2_max'
-# Myc = '/home/port-mpalerme/Documents/Atipical/Traitement/photos/Myc_bdb_cut2_max'
-# Pse = '/home/port-mpalerme/Documents/Atipical/Traitement/photos/Pse_bdb_cut2_max'
-# Syl = '/home/port-mpalerme/Documents/Atipical/Traitement/photos/Syl_bdb_cut2_max'
-
 
 ###############################################################################
 ### Manage arguments input
@@ -60,6 +52,10 @@ def arguments ():
     # Add argument for output directory
     parser.add_argument('-o', '--dir_out', type=str, help="output directory",
                         required=True, dest='dir_out')
+
+    # Add argument to choose Verso
+    parser.add_argument('-v', action='store_true', help="Verso",
+                        dest='verso')
 
     # Add argument to choose Recto or Recto/Verso
     parser.add_argument('--rv', action='store_true', help="Recto/Verso",
@@ -100,29 +96,29 @@ def create_dataset (dir_in, rectoverso):
         lt_dataset.append({})
         for part in [TRAIN, TEST]:
             # Add dataset's part
-            lt_dataset[int(split)][part] = {RECTO:[], SYMPTOM:[]}
+            lt_dataset[int(split)][part] = {lt_face[0]:[], SYMPTOM:[]}
             if rectoverso:
                 # Add verso
-                lt_dataset[int(split)][part][VERSO] = []
+                lt_dataset[int(split)][part][lt_face[1]] = []
 
             for index_sympt, symptom in enumerate(LT_CLASS):
                 # Take path of all recto images of this symptom
                 lt_images = sorted(glob.glob(os.path.join(dir_in, split, part,
-                                                          symptom, RECTO,
-                                                          '*ecto*.*')))
+                                                          symptom, lt_face[0],
+                                                          lt_regex[0])))
 
                 # Add images in dataset
-                lt_dataset[int(split)][part][RECTO] += lt_images
+                lt_dataset[int(split)][part][lt_face[0]] += lt_images
 
                 if rectoverso:
                     # Take path of all verso images of this symptom
                     lt_images = sorted(glob.glob(os.path.join(dir_in, split,
                                                               part, symptom,
-                                                              VERSO,
-                                                              '*erso*.*')))
+                                                              lt_face[1],
+                                                              lt_regex[1])))
 
                     # Add images in dataset
-                    lt_dataset[int(split)][part][VERSO] += lt_images
+                    lt_dataset[int(split)][part][lt_face[1]] += lt_images
 
                 # Add index of symptom
                 lt_dataset[int(split)][part][SYMPTOM] += list(np.ones(len(lt_images),
@@ -182,7 +178,7 @@ def lrlm(in_im, in_mask):
             output[index] = func()[0]
         except ValueError:
             output[index] = 0
-  
+
     output = np.nan_to_num(output, False, nan=0, posinf=np.iinfo('int64').max,
                            neginf=np.iinfo('int64').min)
 
@@ -288,18 +284,18 @@ def part_features_dataset(dataset, part, rectoverso):
 
     """
     lt_features = []
-    for index in range(len(dataset[part][RECTO])):
-        features = extract_features(dataset[part][RECTO][index])
+    for index in range(len(dataset[part][lt_face[0]])):
+        features = extract_features(dataset[part][lt_face[0]][index])
 
         # if woks with verso
         if rectoverso:
-            id_recto = os.path.basename(dataset[part][RECTO][index])[0:8]
-            id_verso = os.path.basename(dataset[part][VERSO][index])[0:8]
+            id_recto = os.path.basename(dataset[part][lt_face[0]][index])[0:8]
+            id_verso = os.path.basename(dataset[part][lt_face[1]][index])[0:8]
             # Verify we work with same leaf
             if id_recto != id_verso:
                 raise Exception('Not same id, recto: ' + id_recto +
                                 ' verso: ' + id_verso)
-            features_verso = extract_features(dataset[part][VERSO][index])
+            features_verso = extract_features(dataset[part][lt_face[1]][index])
 
             # concatenate features of image
             features = np.concatenate((features, features_verso))
@@ -333,7 +329,7 @@ def features_dataset(lt_dataset, rectoverso):
     for part in [TRAIN,TEST]:
         # Take list name
         lt_name = [os.path.basename(name)[0:8]\
-                   for name in lt_dataset[0][part][RECTO]]
+                   for name in lt_dataset[0][part][lt_face[0]]]
 
         # Extract feature of all images
         lt_features = part_features_dataset(lt_dataset[0], part, rectoverso)
@@ -347,9 +343,9 @@ def features_dataset(lt_dataset, rectoverso):
     lt_features = []
     for dataset in lt_dataset:
         train = [feat_image[os.path.basename(name)[0:8]]\
-                 for name in dataset[TRAIN][RECTO]]
+                 for name in dataset[TRAIN][lt_face[0]]]
         test = [feat_image[os.path.basename(name)[0:8]]\
-                for name in dataset[TEST][RECTO]]
+                for name in dataset[TEST][lt_face[0]]]
         lt_features.append({TRAIN:train, TEST:test})
 
     return lt_features
@@ -404,6 +400,13 @@ def run():
     # Take input arguments
     args =  arguments()
 
+    # Work on verso
+    if args.verso:
+        lt_face[0] = "verso"
+        lt_face[1] = "recto"
+        lt_regex[0] = '*erso*.*'
+        lt_regex[1] = '*ecto*.*'
+
     # Take absolu path of input directory
     abs_dir_in = os.path.abspath(os.path.expanduser(args.dir_in))
 
@@ -447,9 +450,10 @@ def run():
         pickle.dump(out_fits, fsave)
 
     # print result
-    for name, classifier in lt_classifier:
-        print("Classifier: " + name)
-        print("score: " + str(np.mean(out_fits[name][0]['score'])))
+    with open(os.path.join(abs_dir_out, 'results.txt'), 'w') as fres:
+        for name, classifier in lt_classifier:
+            fres.write("Classifier: " + name)
+            fres.write("score: " + str(np.mean(out_fits[name][0]['score'])))
 
 if __name__=='__main__':
     run()
