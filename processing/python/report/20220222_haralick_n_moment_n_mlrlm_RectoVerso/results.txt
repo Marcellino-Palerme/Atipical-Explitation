@@ -1,0 +1,5 @@
+Classifier: linear_auto score: 0.8527380764815774
+Classifier: linear_none score: 0.8756060230930249
+Classifier: quatra score: 0.8215504887948561
+Classifier: svc score: 0.6302847239415698
+Classifier: dtree score: 0.7158695146563432
