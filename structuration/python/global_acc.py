@@ -37,10 +37,20 @@ def arguments ():
                         help="input ML recto-verso csv file path",
                         required=True, dest='mlrv')
 
+    # Add argument for ML verso csv file path
+    parser.add_argument('-e', '--mlv', type=str,
+                        help="input ML verso csv file path",
+                        required=True, dest='mlv')
+
     # Add argument for DL recto csv file path
     parser.add_argument('-d', '--dlr', type=str,
                         help="input DL recto csv file path",
                         required=True, dest='dlr')
+
+    # Add argument for DL verso csv file path
+    parser.add_argument('-p', '--dlv', type=str,
+                        help="input DL recto csv file path",
+                        required=True, dest='dlv')
 
     # Add argument for DL recto-verso csv file path
     parser.add_argument('-v', '--dlrv', type=str,
