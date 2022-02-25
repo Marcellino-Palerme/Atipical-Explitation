@@ -6,15 +6,17 @@
 \usepackage{babel}
 \usepackage{fp}
 \usepackage{pgf-pie}
+\usepackage{hyperref}
+\usepackage[section]{placeins}
 
 % Define number image by symptom
 \def \nbAlt {988}
 \def \nbBig {665}
-\def \nbMac {750}
-\def \nbMil {100}
-\def \nbMyc {768}
-\def \nbPse {780}
-\def \nbSym {857}
+\def \nbMac {775}
+\def \nbMil {894}
+\def \nbMyc {772}
+\def \nbPse {788}
+\def \nbSym {890}
 
 % Calculate number total of recto images
 \FPadd\ttImgR\nbAlt\nbBig
@@ -64,32 +66,38 @@
 \section{Materials and Method}
 
 \subsection{General}
-\ttImgR
-\\
-\ttImgRV\\
-\pAlt\\
-\pBig\\
-\pMac\\
-\pMil\\
-\pMyc\\
-\pPse\\
-\pSym
+	\begin{figure}[!htbp]
+		\includegraphics[scale=0.2]{images/ml_dl_process.png}
+		\caption{workflow}
+		\label{fig:workflow}
+	\end{figure}
+	\FloatBarrier
+	
 \subsection{Image database}
-The leaf’s shooting is standardized. We made a portable stand. (add photo) It composed of  a base  onto we fixed at left and right two LED light supports and at up a camera support. The LED lights are oriented to the middle of base.
-\\
-The image composition is standardized too. The background is uniform blue. At left, there is a ruler. At right, there are three color mire (black, gray and white). At down, we find photo’s name and orientation leaf (recto or verso). And at the middle, we put the leaf.
+	The leaf’s shooting is standardized. We made a portable stand. (add photo) It composed of  a base  onto we fixed at left and right two LED light supports and at up a camera support. The LED lights are oriented to the middle of base.
+	\\
+	The image composition is standardized too. The background is uniform blue. At left, there is a ruler. At right, there are three color mire (black, gray and white). At down, we find photo’s name and orientation leaf (recto or verso). And at the middle, we put the leaf [\ref{fig:leaf_raw}].
+	\begin{figure}[!htbp]
+		\includegraphics[scale=0.06]{images/leaf_raw.jpg}
+		\caption{leaf raw}
+		\label{fig:leaf_raw}
+	\end{figure}
+	\\
+	In database, for each leaf we shoot the recto and the verso. A expert identify the symptom. Here we work on six symptoms, Alternaria (Alt), Biglobosa (Big), Maculense (Mac), Mildiou (Mil), Mycosephéréla (Myc), Pseudo (Pse) and symptom-less (Sym). We have \ttImgR leafs (so 9816 photos), \nbAlt Alternaria, \nbBig Biglobosa, \nbMac Maculence, \nbMil Mildiou, \nbMyc Mycosephéréla, \nbPse Pseudo and \nbSym Symptom-less [\ref{fig:Sym_dist}].
 
-\begin{tikzpicture}
-	
-	\pie[
-	text = legend
-	]{\pAlt/Alt,
-	  \pBig/Big,
-	  \pMac/Mac,
-	  \pMil/Mil,
-	  \pMyc/Mic,
-	  \pPse/Pse,
-      \pSym/Sym}
-	
-\end{tikzpicture}
+	\begin{figure}[!htbp]
+		\begin{tikzpicture}
+			\pie[
+			text = legend
+			]{\pAlt/Alt,
+			  \pBig/Big,
+			  \pMac/Mac,
+			  \pMil/Mil,
+			  \pMyc/Mic,
+			  \pPse/Pse,
+		      \pSym/Sym}
+		\end{tikzpicture}
+		\caption{Symptoms distribution}
+		\label{fig:Sym_dist}
+	\end{figure}
 \end{document}
