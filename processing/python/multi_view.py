@@ -13,6 +13,7 @@ import itertools as its
 import tensorflow as tf
 import numpy as np
 from tools_file import create_directory
+import tuning_datagen as tdg
 
 
 
@@ -274,18 +275,18 @@ def run():
 
     # Define directory where take image
     path_recto = os.path.abspath(os.path.expanduser(args.dir_rec))
-    path_verso = os.path.abspath(os.path.expanduser(args.dir_ver))
+    # path_verso = os.path.abspath(os.path.expanduser(args.dir_ver))
 
-    # Save Dataset
-    save_dataset(path_recto, path_verso, cst_dir_out)
+    # # Save Dataset
+    # save_dataset(path_recto, path_verso, cst_dir_out)
 
-    dataset = {}
+    # dataset = {}
 
-    # Take all images and labels
-    for part in [CST_TRAIN, CST_VAL]:
-        dataset[part] = get_dataset(os.path.join(path_recto, part),
-                                    os.path.join(path_verso, part),
-                                    cst_img_size, True, 33)
+    # # Take all images and labels
+    # for part in [CST_TRAIN, CST_VAL]:
+    #     dataset[part] = get_dataset(os.path.join(path_recto, part),
+    #                                 os.path.join(path_verso, part),
+    #                                 cst_img_size, True, 33)
 
 
     for strucs in its.product(cst_lt_struct, repeat=2):
@@ -338,31 +339,37 @@ def run():
                       loss=tf.keras.losses.SparseCategoricalCrossentropy(),
                       metrics=['accuracy'])
 
+        dt_train = tdg.DataGenerator(os.path.join(path_recto, 'sect0'),
+                                     recto=True, verso=True)
+        dt_val = tdg.DataGenerator(os.path.join(path_recto, 'sect1'),
+                                   recto=True, verso=True)
         # Training the network
         history = model.fit(
-                            x=dataset[CST_TRAIN],
-                            validation_data=dataset[CST_VAL],
+                            x=dt_train,
+                            validation_data=dt_val,
                             epochs=30,
                             verbose=0,
-                            batch_size=1
+                            batch_size=32
                             )
 
-
+        dt_test = tdg.DataGenerator(os.path.join(path_recto, 'sect2'),
+                                    recto=True, verso=True)
+        model.evaluate(dt_test)
         # Take all images and labels
-        for part in [CST_TRAIN, CST_VAL, CST_TEST]:
-            dataset[part] = get_dataset(os.path.join(path_recto, part),
-                                        os.path.join(path_verso, part),
-                                        cst_img_size, False)
+        # for part in [CST_TRAIN, CST_VAL, CST_TEST]:
+        #     dataset[part] = get_dataset(os.path.join(path_recto, part),
+        #                                 os.path.join(path_verso, part),
+        #                                 cst_img_size, False)
 
-        # Create dictionary with pred and true for train/validation/test
-        my_dict = pred_true(model, dataset)
+        # # Create dictionary with pred and true for train/validation/test
+        # my_dict = pred_true(model, dataset)
 
         # Save dictionary
         dict_file = os.path.join(cst_dir_out,
                                  cst_date + "_pred_true_"\
                                          + "_".join(strucs) + ".json")
-        with open(dict_file, 'w') as file:
-            json.dump(my_dict, file)
+        # with open(dict_file, 'w') as file:
+        #     json.dump(my_dict, file)
 
         # Save history
         hist_file = os.path.join(cst_dir_out,

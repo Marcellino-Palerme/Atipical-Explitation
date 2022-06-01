@@ -195,7 +195,8 @@ def aug_image(image, ratio_stay):
         tmp_img = tfm.warp(image, tform.inverse)
         tmp_nb_pixel = np.nonzero(tmp_img)[0].shape[0]
         tmp_ratio = tmp_nb_pixel / nb_pixel
-    return tmp_img
+    tmp_img *= 255
+    return tmp_img.astype(np.uint8)
 
 
 def create_cluster(dir_in, name, clus_size, nb_aug, splits=(0.8, 0.2),

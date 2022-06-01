@@ -50,6 +50,8 @@ class DataGenerator(Sequence):
         self.batch_size = batch_size
         self.recto = recto
         self.verso = verso
+        self.sympt = {'Alt':0, 'Big':1, 'Mac':2, 'Mil':3, 'Myc':4,
+                      'Pse':5, 'Syl':6}
 
 
     def __len__(self):
@@ -81,7 +83,8 @@ class DataGenerator(Sequence):
 
         dic = {'image_r': np.array(h5f['image_r'])}
         dic['image_v'] = np.array(h5f['image_v'])
-        dic['label'] = np.array(h5f['label'])
+        dic['label'] = np.array(h5f['label']).astype(str)
+        dic['label'] = np.array([self.sympt[x] for x in dic['label']])
 
         h5f.close()
 
@@ -108,8 +111,9 @@ class DataGenerator(Sequence):
         h5f = h5py.File(self.l_cluster[index], 'r')
 
         dic = {'image_r': np.array(h5f['image_r'])[:size]}
-        dic['image_v'] = np.array(h5f['image_v'][:size])
-        dic['label'] = np.array(h5f['label'][:size])
+        dic['image_v'] = np.array(h5f['image_v'])[:size]
+        dic['label'] = np.array(h5f['label'])[:size].astype(str)
+        dic['label'] = np.array([self.sympt[x] for x in dic['label']])
 
         h5f.close()
 
