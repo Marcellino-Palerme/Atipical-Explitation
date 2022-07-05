@@ -16,7 +16,6 @@ from tools_file import create_directory
 import tuning_datagen as tdg
 
 
-
 ##############################################################################
 ### Constants
 ##############################################################################
@@ -326,9 +325,15 @@ def run():
         # new top
         concat = tf.keras.layers.Dropout(0.2)(concat)
 
+        model_final = tf.keras.layers.Dense(128,
+                                            activation='relu')(concat)
+
+        model_final = tf.keras.layers.Dense(64,
+                                            activation='relu')(model_final)
+
         num_classes = len(CST_SYMP)
         model_final = tf.keras.layers.Dense(num_classes,
-                                            activation='softmax')(concat)
+                                            activation='softmax')(model_final)
 
 
         model = tf.keras.Model(inputs=inputs,
@@ -343,13 +348,22 @@ def run():
                                      recto=True, verso=True)
         dt_val = tdg.DataGenerator(os.path.join(path_recto, 'sect1'),
                                    recto=True, verso=True)
+
+        # Define Callback
+        early_cb = tf.keras.callbacks.EarlyStopping(patience=3,
+                                                    monitor='val_loss',
+                                                    mode='min',
+                                                    min_delta = 0.1,
+                                                    restore_best_weights=True,
+                                                    verbose=0)
         # Training the network
         history = model.fit(
                             x=dt_train,
                             validation_data=dt_val,
                             epochs=30,
                             verbose=0,
-                            batch_size=32
+                            batch_size=32,
+                            callbacks=[early_cb]
                             )
 
         dt_test = tdg.DataGenerator(os.path.join(path_recto, 'sect2'),
