@@ -122,7 +122,7 @@ def split(splits, data):
 
     """
     # Verify if sum of split equal one
-    if np.sum(splits) != 1:
+    if round(np.sum(splits), 10) != 1:
         raise ValueError("Sum of split is different of one")
 
     # Copy data
